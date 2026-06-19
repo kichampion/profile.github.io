@@ -1,0 +1,3174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>82-0: 完美赛季</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --court-orange: #e85d26;
+    --court-dark: #0a0a1a;
+    --court-mid: #12122a;
+    --court-light: #1a1a3e;
+    --gold: #f59e0b;
+    --gold-light: #fbbf24;
+    --success: #22c55e;
+    --danger: #ef4444;
+    --white: #ffffff;
+    --text-light: #f1f5f9;
+    --text-muted: #94a3b8;
+    --accent: #8b5cf6;
+    --accent-light: #a78bfa;
+    --card-bg: rgba(255,255,255,0.05);
+    --card-border: rgba(255,255,255,0.08);
+    --glass-bg: rgba(255,255,255,0.04);
+    --glass-border: rgba(255,255,255,0.1);
+    --glass-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    --glow-orange: 0 0 20px rgba(232,93,38,0.3);
+    --glow-gold: 0 0 20px rgba(245,158,11,0.3);
+    --glow-purple: 0 0 20px rgba(139,92,246,0.3);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --radius-2xl: 24px;
+    --transition-fast: 0.15s cubic-bezier(0.4,0,0.2,1);
+    --transition-mid: 0.3s cubic-bezier(0.4,0,0.2,1);
+    --transition-slow: 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--court-dark);
+    color: var(--text-light);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* --- BG Particles --- */
+  #particles-canvas {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 0; pointer-events: none;
+  }
+
+  /* Ambient glow blobs */
+  .ambient-glow {
+    position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
+    filter: blur(80px); opacity: 0.15;
+  }
+  .ambient-glow.g1 { width: 400px; height: 400px; background: var(--court-orange); top: -100px; right: -100px; }
+  .ambient-glow.g2 { width: 350px; height: 350px; background: var(--accent); bottom: 10%; left: -80px; }
+  .ambient-glow.g3 { width: 300px; height: 300px; background: var(--gold); top: 40%; right: -60px; opacity: 0.08; }
+
+  .app-container {
+    position: relative; z-index: 1;
+    max-width: 750px; margin: 0 auto; padding: 8px 16px 24px;
+  }
+  .app-container.game-active {
+    padding-top: 0;
+  }
+
+  /* --- HEADER --- */
+  .header {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 750px;
+    text-align: center;
+    padding: 0 0 4px;
+    z-index: 50;
+    background: rgba(10,10,26,0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--glass-border);
+  }
+  .header .header-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0 auto;
+  }
+  .header .header-img.game {
+    display: none;
+  }
+  .header .header-img.small {
+    max-width: 120px;
+  }
+  @font-face {
+    font-family: 'GameFont';
+    src: url('https://activity-static.hoopchina.com.cn/files/2665-4ey65lrc-upload-1780649092804-12.otf') format('opentype');
+  }
+  .header-text {
+    display: none;
+    font-family: 'GameFont', 'Oswald', sans-serif;
+    font-size: 28px;
+    font-weight: 400;
+    letter-spacing: 2px;
+    color: #ffffff;
+    white-space: nowrap;
+    text-align: center;
+    padding: 16px 0;
+    background: linear-gradient(135deg, #fff, var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* --- SCREENS --- */
+  .screen { display: none; }
+  .screen.active { display: block; animation: screenIn 0.6s cubic-bezier(0.16,1,0.3,1); }
+  #screen-game.active { display: flex; flex-direction: column; }
+  #screen-result.active { display: flex; flex-direction: column; justify-content: center; min-height: calc(100vh - 80px); }
+
+  @keyframes screenIn {
+    from { opacity: 0; transform: translateY(30px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* --- BUTTONS --- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 28px; border: none; border-radius: var(--radius-md);
+    font-family: 'Inter', sans-serif; font-size: 0.95rem; font-weight: 600;
+    letter-spacing: 0.5px; cursor: pointer;
+    transition: all var(--transition-mid); position: relative; overflow: hidden;
+    text-align: center;
+  }
+  .btn::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--court-orange), #d4450a);
+    color: white; box-shadow: var(--glow-orange), 0 2px 8px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(232,93,38,0.5), 0 4px 16px rgba(0,0,0,0.4); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-gold {
+    background: linear-gradient(135deg, var(--gold), #d97706);
+    color: #1a1a2e; box-shadow: var(--glow-gold), 0 2px 8px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(245,158,11,0.5), 0 4px 16px rgba(0,0,0,0.4); }
+  .btn-secondary {
+    background: rgba(255,255,255,0.06); color: var(--white);
+    border: 1px solid rgba(255,255,255,0.12);
+    backdrop-filter: blur(8px);
+  }
+  .btn-secondary:hover { background: rgba(255,255,255,0.12); transform: translateY(-1px); border-color: rgba(255,255,255,0.2); }
+  .btn-sm { padding: 8px 18px; font-size: 0.82rem; }
+  .btn-xs { padding: 6px 12px; font-size: 0.72rem; border-radius: var(--radius-sm); }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+  /* --- MENU SCREEN --- */
+  #screen-menu.active {
+    min-height: 75vh;
+  }
+  .menu-content {
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center; gap: 28px;
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 18vh;
+    z-index: 2;
+  }
+  .menu-content .logo-large {
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(5rem, 15vw, 10rem);
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--gold-light), var(--court-orange), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+    filter: drop-shadow(0 0 30px rgba(245,158,11,0.3));
+    animation: logoFloat 3s ease-in-out infinite;
+  }
+  @keyframes logoFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  .menu-content .tagline {
+    font-size: 1rem; color: var(--text-muted); max-width: 440px; line-height: 1.8;
+    letter-spacing: 0.3px;
+  }
+  .menu-buttons { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+  /* --- How-to Modal --- */
+  .howto-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(8px);
+    z-index: 999999; display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .howto-overlay.show { display: flex; animation: fadeIn 0.3s ease; }
+  .howto-box {
+    background: linear-gradient(180deg, #16162e, var(--court-dark));
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: 28px 24px;
+    max-width: 460px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  }
+  .howto-box h3 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.3rem;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .howto-box ul { list-style: none; display: grid; gap: 14px; }
+  .howto-box ul li {
+    padding-left: 32px; position: relative;
+    color: var(--text-muted); font-size: 0.9rem; line-height: 1.7;
+  }
+  .howto-box ul li::before {
+    content: '🏀'; position: absolute; left: 0; top: 0; font-size: 0.9rem;
+  }
+  .howto-box ul li strong { color: var(--text-light); }
+  .howto-box .btn { width: 100%; margin-top: 20px; }
+
+  /* --- SLOT MACHINE --- */
+  .slot-section {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: 24px 20px; margin: 12px 0;
+    text-align: center;
+    backdrop-filter: blur(12px);
+    box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .slot-section .round-label {
+    font-family: 'Oswald', sans-serif; font-size: 1.4rem; color: var(--gold); margin-bottom: 8px;
+    letter-spacing: 1px;
+  }
+  .slot-section .round-desc { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 12px; }
+
+  .slot-machine {
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+    margin: 16px auto;
+  }
+  .slot-column {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .slot-column-label {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 3px;
+    color: var(--text-muted); font-weight: 700;
+  }
+  .slot-reel {
+    width: 200px; height: 72px;
+    background: linear-gradient(180deg, rgba(10,10,26,0.9), rgba(26,26,62,0.9));
+    border: 2px solid rgba(245,158,11,0.4); border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Oswald', sans-serif; font-size: 1.4rem;
+    font-weight: 600; color: var(--gold-light);
+    position: relative; overflow: hidden;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.4), 0 0 20px rgba(245,158,11,0.08);
+    transition: all var(--transition-mid);
+    backdrop-filter: blur(8px);
+  }
+  .slot-reel.team-reel { width: 190px; }
+  .slot-reel .reel-overlay {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(180deg, rgba(10,10,26,0.7) 0%, transparent 25%, transparent 75%, rgba(10,10,26,0.7) 100%);
+    pointer-events: none;
+  }
+  .slot-reel.spinning .reel-text { animation: slotSpin 0.12s linear infinite; }
+  @keyframes slotSpin {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-80px); }
+  }
+  .slot-reel.spinning {
+    border-color: var(--court-orange);
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.4), 0 0 40px rgba(232,93,38,0.25);
+    animation: reelGlow 0.5s ease-in-out infinite alternate;
+  }
+  @keyframes reelGlow {
+    from { box-shadow: inset 0 2px 8px rgba(0,0,0,0.4), 0 0 20px rgba(232,93,38,0.2); }
+    to { box-shadow: inset 0 2px 8px rgba(0,0,0,0.4), 0 0 40px rgba(232,93,38,0.4); }
+  }
+
+  .slot-controls { display: flex; gap: 12px; justify-content: center; margin-top: 16px; }
+  .slot-controls-row { display: flex; justify-content: center; margin-top: 10px; gap: 8px; }
+  /* skip-badge styles removed */
+
+  /* --- PLAYER LIST (flat row layout) --- */
+  .player-grid {
+    display: flex; flex-direction: column; gap: 6px;
+    margin: 12px 0;
+  }
+  .player-card {
+    display: flex; align-items: center;
+    gap: 12px;
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md); padding: 12px 16px; cursor: pointer;
+    transition: all var(--transition-fast); position: relative;
+    min-height: 52px;
+    backdrop-filter: blur(8px);
+  }
+  .player-card::before {
+    content: ''; position: absolute; inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(255,255,255,0.04), transparent);
+    pointer-events: none;
+  }
+  @media (hover: hover) {
+    .player-card:hover {
+      border-color: rgba(245,158,11,0.4);
+      background: rgba(255,255,255,0.07);
+      transform: translateX(4px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 15px rgba(245,158,11,0.1);
+    }
+  }
+  .player-card.selected {
+    border-color: var(--success); background: rgba(34,197,94,0.08);
+    box-shadow: 0 0 20px rgba(34,197,94,0.15);
+  }
+  .player-card .player-name {
+    font-family: 'Oswald', sans-serif; font-size: 1rem; font-weight: 600;
+    color: var(--white); min-width: 130px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .player-card .pos-badge {
+    display: inline-block;
+    padding: 2px 10px; border-radius: 99px;
+    font-size: 0.65rem; font-weight: 700;
+    letter-spacing: 0.5px;
+    background: linear-gradient(135deg, var(--accent), #7c3aed); color: #fff;
+    line-height: 1.5;
+  }
+  .player-card .player-positions {
+    display: flex; gap: 4px; align-items: center; flex-shrink: 0;
+  }
+  .player-card .player-team {
+    font-size: 0.72rem; color: var(--text-muted); min-width: 140px;
+  }
+  .player-card .player-stats {
+    display: flex; gap: 6px; margin-left: auto; flex-shrink: 0;
+  }
+  .player-card .player-salary {
+    font-size: 0.72rem; color: var(--gold); font-weight: 600;
+    padding: 2px 8px; border-radius: 5px;
+    background: rgba(245,158,11,0.08);
+  }
+  .player-card .stat-pill {
+    display: flex; align-items: center; gap: 3px;
+    padding: 2px 8px; border-radius: 5px;
+    font-size: 0.72rem; font-weight: 600;
+    background: rgba(255,255,255,0.05);
+  }
+  .stat-pill .stat-label { color: var(--text-muted); font-weight: 400; font-size: 0.58rem; letter-spacing: 0.5px; }
+
+  /* --- POSITION SLOTS (取代原来的 roster-bar) --- */
+  .pos-slots {
+    display: flex; flex-direction: column; gap: 8px;
+    margin: 0 auto; max-width: 420px;
+  }
+  .pos-slots-row {
+    display: flex; gap: 8px; justify-content: center;
+  }
+  .pos-slot {
+    width: 110px; min-height: 115px;
+    border: 2px dashed rgba(255,255,255,0.1);
+    border-radius: var(--radius-md); display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-size: 0.7rem; color: var(--text-muted); gap: 3px;
+    text-align: center; padding: 6px; transition: all var(--transition-mid);
+    position: relative;
+    backdrop-filter: blur(4px);
+    background: var(--glass-bg);
+  }
+  .pos-slot .pos-label {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 1px;
+    opacity: 0.5; font-family: 'Oswald', sans-serif;
+    margin-top: 4px;
+  }
+  .pos-slot.filled {
+    border-color: transparent; border-style: solid;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+  .pos-slot.filled::after {
+    content: ''; position: absolute; inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 40%);
+    pointer-events: none;
+  }
+  .pos-slot .slot-player-name {
+    font-family: 'Oswald', sans-serif; font-size: 1.15rem;
+    color: var(--white); font-weight: 700; line-height: 1.2;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+  .pos-slot .slot-team-season {
+    font-size: 0.78rem; color: rgba(255,255,255,0.75); font-weight: 500;
+  }
+  .pos-slot .slot-player-salary {
+    font-size: 0.68rem; color: var(--gold); font-weight: 600;
+  }
+  .captain-badge {
+    position: absolute; top: 4px; right: 4px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    color: #1a1a2e; font-size: 0.55rem; font-weight: 900;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 8px rgba(245,158,11,0.4);
+    z-index: 2;
+  }
+  .captain-slot {
+    border-color: var(--gold) !important;
+    box-shadow: 0 0 20px rgba(245,158,11,0.3), inset 0 1px 0 rgba(255,255,255,0.15) !important;
+  }
+  .pos-slot.dragover {
+    border-color: var(--gold-light);
+    background: rgba(243,156,18,0.1);
+    box-shadow: 0 0 20px rgba(243,156,18,0.3);
+  }
+  .pos-slot.clickable { cursor: pointer; }
+  .pos-slot.highlight {
+    animation: slotBlink 0.8s ease-in-out infinite;
+    cursor: pointer !important;
+    border-color: var(--gold) !important;
+    border-style: solid !important;
+  }
+  .pos-slot.highlight:hover {
+    transform: scale(1.06);
+    background: rgba(245,158,11,0.15);
+    box-shadow: 0 0 25px rgba(245,158,11,0.4);
+  }
+  @keyframes slotBlink {
+    0%, 100% { box-shadow: 0 0 10px rgba(245,158,11,0.2); }
+    50% { box-shadow: 0 0 25px rgba(245,158,11,0.5); }
+  }
+  .pos-slot.move-source { border-color: var(--accent-light); background: rgba(139,92,246,0.1); }
+  .pos-slot .slot-pos-badge {
+    font-size: 0.5rem; padding: 1px 5px; border-radius: 4px;
+    background: var(--accent); color: #fff; font-weight: 700;
+  }
+  /* Player card disabled state */
+  .player-card.disabled {
+    opacity: 0.35; cursor: not-allowed;
+  }
+  .player-card.disabled:hover {
+    transform: none; border-color: var(--glass-border);
+  }
+  /* Drag ghost (unused — click-to-move only) */
+
+  /* --- STICKY TOP (header text + roster bar) --- */
+  .sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 49;
+    background: rgba(10,10,26,0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    margin: 0 -16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    border-bottom: 1px solid var(--glass-border);
+  }
+  .sticky-top .roster-bar {
+    margin: 0;
+    box-shadow: none;
+  }
+  .sticky-top .pos-slots {
+    margin: 0 auto;
+    max-width: 420px;
+    padding: 0 16px 8px;
+  }
+  /* --- SIMULATION --- */
+  .sim-results {
+    text-align: center; padding: 20px 0;
+  }
+  .sim-results .final-record {
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(3.5rem, 10vw, 6rem);
+    font-weight: 700;
+    line-height: 1.1;
+    margin: 20px 0;
+    letter-spacing: 2px;
+  }
+  .sim-results .final-record.perfect {
+    background: linear-gradient(135deg, var(--gold-light), var(--court-orange));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 30px rgba(251,191,36,0.4));
+    animation: perfectPulse 2s ease-in-out infinite;
+  }
+  @keyframes perfectPulse {
+    0%, 100% { filter: drop-shadow(0 0 20px rgba(251,191,36,0.3)); }
+    50% { filter: drop-shadow(0 0 40px rgba(251,191,36,0.6)); }
+  }
+  .sim-results .final-record.good { color: var(--success); }
+  .sim-results .final-record.medium { color: var(--court-orange); }
+  .sim-results .final-record.bad { color: var(--danger); }
+
+  .result-verdict {
+    font-size: 0.92rem; margin: 8px 0 16px; padding: 10px 18px;
+    border-radius: var(--radius-md); display: inline-block;
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
+    line-height: 1.4;
+    backdrop-filter: blur(8px);
+  }
+  .threshold-note {
+    font-size: 0.85rem; color: var(--text-muted); margin: -10px 0 20px;
+    padding: 10px 20px; border-radius: var(--radius-sm);
+    background: rgba(255,255,255,0.02); display: inline-block;
+    border: 1px dashed rgba(255,255,255,0.06);
+  }
+
+  .stats-breakdown {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px; margin: 20px 0;
+  }
+  .stat-card {
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md); padding: 16px; text-align: center;
+    backdrop-filter: blur(8px);
+  }
+  .stat-card .stat-value {
+    font-family: 'Oswald', sans-serif; font-size: 1.8rem; font-weight: 700;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .stat-card .stat-label {
+    font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;
+    letter-spacing: 1px; margin-top: 4px;
+  }
+
+  .roster-final {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px; margin: 20px 0;
+  }
+  .roster-final .player-final {
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md); padding: 14px;
+    backdrop-filter: blur(8px);
+  }
+  .roster-final .player-final .name { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 1rem; }
+  .roster-final .player-final .season { color: var(--gold); font-size: 0.8rem; }
+  .roster-final .player-final .stats { font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; }
+
+  .sim-bar-container {
+    margin: 30px auto; max-width: 600px;
+  }
+  .sim-bar-bg {
+    height: 36px; background: rgba(255,255,255,0.05);
+    border-radius: 18px; overflow: hidden; position: relative;
+    border: 1px solid var(--glass-border);
+  }
+  .sim-bar-fill {
+    height: 100%; border-radius: 18px;
+    background: linear-gradient(90deg, var(--danger), var(--court-orange), var(--gold), var(--success));
+    transition: width 2s ease; width: 0%;
+  }
+  .sim-bar-label {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-weight: 700; font-size: 0.9rem; text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+  }
+
+  .confetti-container {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 100;
+  }
+  .confetti-piece {
+    position: absolute; width: 10px; height: 10px;
+    animation: confettiFall linear forwards;
+  }
+  @keyframes confettiFall {
+    0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* --- FILTER TABS --- */
+  .filter-tabs {
+    display: flex; gap: 6px; margin-bottom: 10px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 99px; padding: 3px;
+  }
+  .filter-tab {
+    display: inline-block;
+    padding: 5px 16px; border-radius: 99px;
+    font-size: 0.72rem; font-weight: 600; letter-spacing: 0.5px;
+    cursor: pointer; transition: all var(--transition-fast);
+    background: transparent;
+    color: var(--text-muted);
+    font-family: 'Inter', sans-serif;
+    text-transform: uppercase;
+    border: none;
+  }
+  .filter-tab:hover { color: var(--text-light); background: rgba(255,255,255,0.06); }
+  .filter-tab.active {
+    background: linear-gradient(135deg, var(--accent), #7c3aed); color: #fff;
+    box-shadow: 0 2px 10px rgba(139,92,246,0.3);
+  }
+
+  /* --- NO PLAYERS STATE --- */
+  .no-players {
+    text-align: center; padding: 40px 20px; color: var(--text-muted);
+  }
+  .no-players .icon { font-size: 3rem; margin-bottom: 12px; }
+
+  /* --- RESPONSIVE --- */
+  @media (max-width: 768px) {
+    .slot-section { padding: 16px 14px; margin: 8px 0; }
+    .slot-reel { width: 125px; height: 56px; font-size: 1.1rem; }
+    .slot-reel.team-reel { width: 145px; }
+    .slot-section .round-label { font-size: 1.1rem; }
+    .slot-section .round-desc { font-size: 0.78rem; margin-bottom: 8px; }
+    .slot-machine { gap: 10px; margin: 10px auto; }
+    .player-card { flex-wrap: wrap; gap: 6px; padding: 8px 12px; min-height: 44px; }
+    .player-card .player-name { min-width: auto; flex: 1; font-size: 0.85rem; }
+    .player-card .player-team { min-width: auto; flex: 1; text-align: right; font-size: 0.65rem; }
+    .player-card .player-stats { margin-left: 0; width: 100%; justify-content: center; }
+    .pos-slot { width: 90px; min-height: 100px; font-size: 0.58rem; }
+    .pos-slot .slot-player-name { font-size: 1rem; }
+    .pos-slot .slot-team-season { font-size: 0.68rem; }
+    .player-grid { gap: 5px; margin: 8px 0; }
+    .btn { padding: 10px 22px; font-size: 0.9rem; }
+    .btn-sm { padding: 7px 14px; font-size: 0.78rem; }
+    .btn-xs { padding: 5px 10px; font-size: 0.68rem; }
+    .menu-buttons { flex-direction: column; align-items: center; }
+  }
+
+  /* --- CAPTAIN SELECTION --- */
+  .captain-section {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: 24px 20px;
+    margin: 12px 0;
+    text-align: center;
+    backdrop-filter: blur(12px);
+    box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .captain-section .captain-header {
+    margin-bottom: 16px;
+  }
+  .captain-section .captain-header h3 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.3rem;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 6px;
+  }
+  .captain-section .captain-header span {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+  .captain-grid {
+    display: flex; flex-direction: column; gap: 8px;
+    margin: 12px 0;
+  }
+  .captain-card {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--glass-bg); border: 2px solid var(--glass-border);
+    border-radius: var(--radius-md); padding: 12px 16px; cursor: pointer;
+    transition: all var(--transition-fast); position: relative;
+    backdrop-filter: blur(8px);
+  }
+  .captain-card:hover {
+    border-color: rgba(245,158,11,0.4);
+    background: rgba(255,255,255,0.06);
+  }
+  .captain-card.selected {
+    border-color: var(--gold);
+    background: rgba(245,158,11,0.08);
+    box-shadow: 0 0 20px rgba(245,158,11,0.2);
+  }
+  .captain-card .captain-pos {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1rem; font-weight: 700;
+    color: var(--accent-light);
+    min-width: 30px;
+  }
+  .captain-card .captain-name {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1rem; font-weight: 600;
+    color: var(--white); flex: 1;
+  }
+  .captain-card .captain-info {
+    font-size: 0.72rem; color: var(--text-muted);
+    text-align: right;
+  }
+  .captain-card .captain-info .salary {
+    color: var(--gold); font-weight: 600;
+  }
+  .captain-card .captain-mark {
+    position: absolute; top: 8px; right: 8px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    color: #1a1a2e; font-size: 0.6rem; font-weight: 900;
+    display: none; align-items: center; justify-content: center;
+    box-shadow: 0 0 8px rgba(245,158,11,0.4);
+  }
+  .captain-card.selected .captain-mark {
+    display: flex;
+  }
+  .captain-boost-hint {
+    font-size: 0.72rem; color: var(--gold); margin-top: 6px;
+    min-height: 1em;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+  /* Modal overlay for skip */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7); z-index: 200;
+    backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    animation: fadeIn 0.2s ease;
+  }
+  .modal-box {
+    background: linear-gradient(180deg, #16162e, var(--court-dark));
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl); padding: 28px;
+    max-width: 420px; width: 90%;
+    text-align: center;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  }
+  .modal-box h3 { font-family: 'Oswald', sans-serif; margin-bottom: 12px; color: var(--gold); }
+  .modal-box p { color: var(--text-muted); margin-bottom: 20px; font-size: 0.92rem; }
+  .modal-buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+  /* --- App Intercept Modal --- */
+  .app-intercept-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(8px);
+    z-index: 999999; display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .app-intercept-overlay.show { display: flex; }
+  .app-intercept-box {
+    background: linear-gradient(180deg, #16162e, var(--court-dark));
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: 36px 28px;
+    max-width: 360px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  }
+  .app-intercept-box .icon {
+    font-size: 48px; margin-bottom: 16px;
+  }
+  .app-intercept-box h3 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.3rem;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+  .app-intercept-box p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+  .app-intercept-box .btn {
+    width: 100%;
+  }
+
+  /* Loading spinner for slot */
+  .slot-spinner {
+    display: none; font-size: 2rem; animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+  /* --- 战绩排行样式 --- */
+  .record-btn-submit {
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+    box-shadow: 0 4px 20px rgba(245,158,11,0.4) !important;
+  }
+  .record-btn-submit:disabled {
+    opacity: 0.5; pointer-events: none;
+  }
+  .record-btn-submit.done {
+    background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+    box-shadow: 0 4px 20px rgba(34,197,94,0.4) !important;
+  }
+  .ranking-box {
+    margin-top: 20px;
+    padding: 20px 16px;
+    border-radius: var(--radius-xl);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(12px);
+  }
+  .ranking-box h3 {
+    font-family: 'Oswald', sans-serif;
+    color: var(--gold);
+    margin-bottom: 16px;
+    font-size: 1.2rem;
+  }
+  .ranking-stat {
+    text-align: center;
+  }
+  .ranking-stat .num {
+    font-size: 2rem;
+    font-weight: 900;
+  }
+  .ranking-stat .label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+  .ranking-stat .num.gold { color: var(--gold); }
+  .ranking-stat .num.green { color: var(--success); }
+  .ranking-stat .num.purple { color: var(--accent-light); }
+  .ranking-pct-bar {
+    text-align: center;
+    margin-bottom: 16px;
+    padding: 10px;
+    border-radius: var(--radius-md);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--glass-border);
+  }
+  .ranking-pct-bar span {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--gold);
+  }
+  .ranking-list {
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  .ranking-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    padding: 5px 10px;
+    border-radius: var(--radius-sm);
+    transition: background var(--transition-fast);
+  }
+  .ranking-row:hover {
+    background: rgba(255,255,255,0.03);
+  }
+  .ranking-row.is-me {
+    background: rgba(251,191,36,0.08);
+    border: 1px solid rgba(251,191,36,0.2);
+  }
+  .ranking-row .wins-label {
+    width: 36px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .ranking-row .wins-label.me { color: var(--gold); }
+  .ranking-row .wins-label.other { color: var(--text-muted); }
+  .ranking-row .bar-track {
+    flex: 1;
+    height: 16px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.04);
+    overflow: hidden;
+  }
+  .ranking-row .bar-fill {
+    height: 100%;
+    border-radius: 8px;
+    transition: width 0.4s ease;
+  }
+  .ranking-row .bar-fill.me {
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+  }
+  .ranking-row .bar-fill.other {
+    background: rgba(255,255,255,0.12);
+  }
+  .ranking-row .count-label {
+    width: 40px;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-align: left;
+    flex-shrink: 0;
+  }
+  .ranking-loading {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-muted);
+  }
+
+  /* --- 战绩分布图 --- */
+  .dist-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .dist-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.05rem;
+    color: var(--gold);
+  }
+  .dist-total {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+  .dist-loading {
+    text-align: center;
+    padding: 16px;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+  .dist-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 100px;
+    padding: 8px 4px 0;
+    border-radius: var(--radius-md);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    overflow-x: auto;
+  }
+  .dist-bar-wrap {
+    flex: 1;
+    min-width: 6px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    position: relative;
+    cursor: pointer;
+  }
+  .dist-bar {
+    width: 100%;
+    border-radius: 2px 2px 0 0;
+    background: rgba(255,255,255,0.12);
+    transition: height 0.4s ease;
+    min-height: 1px;
+  }
+  .dist-bar.me {
+    background: linear-gradient(180deg, var(--gold), var(--gold-light));
+    box-shadow: 0 0 8px rgba(251,191,36,0.3);
+  }
+  .dist-bar-label {
+    font-size: 0.55rem;
+    color: var(--text-muted);
+    margin-top: 3px;
+    white-space: nowrap;
+  }
+  .dist-summary {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+  .dist-summary .highlight {
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  /* --- Toast --- */
+  .toast-msg {
+    position: fixed;
+    left: 50%;
+    bottom: 100px;
+    transform: translateX(-50%);
+    z-index: 999999;
+    max-width: calc(100% - 36px);
+    padding: 10px 20px;
+    border-radius: 99px;
+    background: rgba(15,15,30,0.92);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(12px);
+    color: #fff;
+    font-size: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.4);
+  }
+  .toast-msg.show { opacity: 1; }
+
+  /* --- Result Grade Badge --- */
+  .grade-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.8rem; font-weight: 900;
+    border: 3px solid currentColor;
+    box-shadow: 0 0 20px currentColor;
+    animation: gradeAppear 0.6s cubic-bezier(0.16,1,0.3,1);
+  }
+  @keyframes gradeAppear {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  /* --- Selection Hint --- */
+  .selection-hint {
+    text-align: center;
+    padding: 4px 0;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    letter-spacing: 0.3px;
+  }
+
+  /* --- Player Section Header --- */
+  .player-section-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px; gap: 10px;
+  }
+  .player-section-header h3 {
+    font-family: 'Oswald', sans-serif;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    white-space: nowrap;
+  }
+
+  /* --- Reel Settle Animation --- */
+  @keyframes reelSettle {
+    0% { transform: scale(1.04); }
+    50% { transform: scale(0.98); }
+    100% { transform: scale(1); }
+  }
+  .slot-reel.settled {
+    animation: reelSettle 0.3s ease-out;
+  }
+
+  /* --- Stat Pill Colors --- */
+  .stat-pill.pts { color: #f59e0b; }
+  .stat-pill.reb { color: #22c55e; }
+  .stat-pill.ast { color: #3b82f6; }
+  .stat-pill.def { color: #8b5cf6; }
+
+  /* --- Smooth Section Transitions --- */
+  .slot-section, #playerSection {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  /* --- Player Card Shimmer on Hover --- */
+  @media (hover: hover) {
+    .player-card:hover::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+      animation: shimmer 0.6s ease-out;
+    }
+  }
+  @keyframes shimmer {
+    from { left: -100%; }
+    to { left: 100%; }
+  }
+</style>
+<script src="./colorbox-ai_v2.1.6.js"></script>
+<script>
+(function () {
+  var settings = {"ownerId":402116,"projectId":"project-ai-1781620173860","title":"完美赛季82-0大挑战","trackingCode":"PHBS7947","bizCategory":"match","shareTitle":"","shareSubtitle":"fixed word","shareCover":"","theme":{"webviewBackground":"#ffffff","skeletonColor":"#edeef0","containerBackground":"#ffffff"},"dayNightMode":"auto"};
+  var projectId = "project-ai-1781620173860";
+  var pagePi = "activity_match_project-ai-1781620173860";
+  var sessionId = "ai-runtime-" + Date.now() + "-" + Math.random().toString(36).slice(2);
+  window.__colorbox_runtime__ = true;
+  window.globalState = Object.assign({}, window.globalState || {}, {
+    name: settings.title,
+    pageTrackCode: settings.trackingCode,
+    wxShareTitle: settings.shareTitle,
+    wxShareSubTitle: settings.shareSubtitle,
+    wxShareImage: settings.shareCover,
+    bizCode: settings.bizCategory,
+    webViewColor: settings.theme && settings.theme.webviewBackground,
+    containerColor: settings.theme && settings.theme.containerBackground,
+    pi: pagePi
+  });
+  if (settings.title) {
+    document.title = settings.title;
+  }
+  function createLocalFallbackApi() {
+    return {
+      getPostDetail: function () {
+        return Promise.reject(new Error("ColorboxAI SDK is not loaded"));
+      },
+      getPostReplyList: function () {
+        return Promise.reject(new Error("ColorboxAI SDK is not loaded"));
+      },
+      getTopicThreads: function () {
+        return Promise.reject(new Error("ColorboxAI SDK is not loaded"));
+      },
+      buildPostSchema: function () {
+        return "";
+      },
+      openPostEditor: function () {
+        return "";
+      }
+    };
+  }
+  var frameTrackDebugLog = [];
+  function pushFrameTrackDebug(stage, detail) {
+    var entry = { stage: stage, detail: detail || {}, ts: Date.now() };
+    frameTrackDebugLog.push(entry);
+    if (frameTrackDebugLog.length > 200) {
+      frameTrackDebugLog.shift();
+    }
+    try {
+      console.log("[ColorboxAI.Track] " + stage, detail || {});
+    } catch (error) {}
+  }
+  function createTrackTraceId() {
+    return "trk_" + Date.now() + "_" + Math.random().toString(36).slice(2, 9);
+  }
+  function post(type, payload) {
+    var trackTraceId = payload && payload.trackTraceId;
+    try {
+      if (!window.parent || window.parent === window) {
+        if (type === "events.track") {
+          pushFrameTrackDebug("frame.post.skip", {
+            trackTraceId: trackTraceId,
+            reason: "no_parent_or_same_window"
+          });
+        }
+        return;
+      }
+      window.parent.postMessage({
+        protocol: "colorbox-ai-bridge",
+        version: 1,
+        direction: "frame-to-host",
+        sessionId: sessionId,
+        projectId: projectId,
+        type: type,
+        payload: payload || {},
+        timestamp: Date.now()
+      }, "*");
+      if (type === "events.track") {
+        pushFrameTrackDebug("frame.post.ok", { trackTraceId: trackTraceId, projectId: projectId });
+      }
+    } catch (error) {
+      if (type === "events.track") {
+        pushFrameTrackDebug("frame.post.error", {
+          trackTraceId: trackTraceId,
+          message: error && error.message || String(error)
+        });
+      }
+    }
+  }
+  window.ColorboxAI = window.ColorboxAI || {};
+  window.ColorboxAI.project = window.ColorboxAI.project || {
+    id: projectId,
+    settings: settings,
+    getSettings: function () { return Promise.resolve(settings); }
+  };
+  if (typeof window.ColorboxAI.configure === "function") {
+    window.ColorboxAI.configure({
+      trackingCode: settings.trackingCode,
+      pi: pagePi
+    });
+  }
+  window.__colorbox_ai_track_debug_frame__ = frameTrackDebugLog;
+  window.ColorboxAI.track = function (trackParams) {
+    var trackTraceId = createTrackTraceId();
+    pushFrameTrackDebug("frame.call", {
+      trackTraceId: trackTraceId,
+      params: trackParams || {},
+      hasParent: !!(window.parent && window.parent !== window)
+    });
+    post("events.track", { trackParams: trackParams || {}, trackTraceId: trackTraceId });
+  };
+  window.ColorboxAI.navigateTo = function (url, target) {
+    console.log("[ColorboxAI.Navigation.Iframe] navigateTo called inside iframe. URL:", url, "Target:", target);
+    console.log("[ColorboxAI.Navigation.Iframe] Posting navigation.open event to parent Host shell.");
+    post("navigation.open", { url: url, target: target });
+  };
+  window.ColorboxAI.openUrl = window.ColorboxAI.navigateTo;
+  window.ColorboxAI.bbs = window.ColorboxAI.bbs || createLocalFallbackApi();
+  window.ColorboxAI.runtime = window.ColorboxAI.runtime || {};
+  window.ColorboxAI.runtime.log = function () {
+    post("runtime.log", { args: Array.prototype.slice.call(arguments) });
+  };
+  window.addEventListener("error", function (event) {
+    post("runtime.error", {
+      message: event.message,
+      sourceFile: event.filename,
+      line: event.lineno,
+      column: event.colno,
+      stack: event.error && event.error.stack
+    });
+  }, true);
+  window.addEventListener("unhandledrejection", function (event) {
+    var reason = event.reason || {};
+    post("runtime.error", {
+      message: reason.message || String(reason),
+      stack: reason.stack || ""
+    });
+  });
+  post("runtime.ready", { href: location.href });
+})();
+</script></head>
+<body>
+
+<canvas id="particles-canvas"></canvas>
+<div class="ambient-glow g1"></div>
+<div class="ambient-glow g2"></div>
+<div class="ambient-glow g3"></div>
+
+<div class="app-container">
+  <!-- HEADER -->
+  <header class="header">
+    <img class="header-img" src="https://i1.hoopchina.com.cn/newsPost/a96122c379b6e7410ebe2c15a7e78619_w_2000_h_3000_.png" alt="82-0 完美赛季">
+  </header>
+
+  <!-- ========== MENU SCREEN ========== -->
+  <div id="screen-menu" class="screen active">
+    <div class="menu-content">
+      <div class="tagline">
+        随机球队、随机年份、五次机会<br>
+        挑选出五名球员组成阵容<br>
+        谁能创造出82-0的完美阵容？
+      </div>
+      <div class="menu-buttons">
+        <button class="btn btn-primary" onclick="try{window.ColorboxAI&&window.ColorboxAI.track({act:'click',blk:'BMC098',pos:'TC1',label:'开始游戏'})}catch(e){};handleStartGame()" style="width:260px;justify-content:center;">▶&nbsp; 开始游戏</button>
+        <button class="btn btn-secondary" onclick="window.ColorboxAI&&window.ColorboxAI.track({act:'click',blk:'BMC098',pos:'TC2',label:'玩法说明'});toggleHowTo()" style="width:260px;justify-content:center;">📖 &nbsp;玩法说明</button>
+        <button class="btn btn-secondary" onclick="window.ColorboxAI&&window.ColorboxAI.track({act:'click',blk:'BMC098',pos:'TC3',label:'查看其他JRs的成绩'});safeNavigate('huputiyu://bbs/topicTag?tagId=148405', '_self', 'click_view_ranking')" style="width:260px;justify-content:center;color:var(--accent-light);border-color:rgba(139,92,246,0.3);">👥 查看其他JRs的成绩</button>
+        <button class="btn btn-secondary btn-xs" onclick="testBestPlayers()" style="display:none;">⚡ 最强阵容</button>
+      </div>
+      <!-- 玩法说明已改为弹窗，放在页面底部 -->
+    </div>
+  </div>
+
+  <!-- ========== GAME SCREEN ========== -->
+  <div id="screen-game" class="screen">
+    <!-- STICKY TOP (header text + roster bar) -->
+    <div class="sticky-top">
+      <div class="header-text" id="gameHeaderText">82-0 完美赛季大挑战</div>
+      <div class="roster-bar" id="rosterBar"></div>
+    </div>
+
+    <div class="selection-hint">
+      <span id="selectionHint">提示：点击已选择球员可以更改其位置</span>
+    </div>
+
+    <!-- SLOT SECTION -->
+    <div class="slot-section" id="slotSection">
+      <div class="round-label" id="roundLabel">第 1 / 5 轮</div>
+      <div class="round-desc" id="roundDesc" style="display:none"></div>
+
+      <!-- Slot Machine -->
+      <div class="slot-machine">
+        <div class="slot-column">
+          <span class="slot-column-label">球队</span>
+          <div class="slot-reel team-reel" id="teamReel">
+            <span class="reel-text" id="teamReelText">???</span>
+            <div class="reel-overlay"></div>
+          </div>
+        </div>
+        <div class="slot-column">
+          <span class="slot-column-label">年份</span>
+          <div class="slot-reel" id="yearReel">
+            <span class="reel-text" id="yearReelText">???</span>
+            <div class="reel-overlay"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="slot-controls">
+        <button class="btn btn-gold" id="spinBtn" onclick="window.ColorboxAI&&window.ColorboxAI.track({act:'click',blk:'BMC098',pos:'TC4',label:'抽取'});spinSlot()">🎰&nbsp; 抽取</button>
+      </div>
+      <div class="slot-controls-row">
+        <button class="btn btn-secondary btn-xs" id="skipTeamBtn" onclick="window.ColorboxAI&&window.ColorboxAI.track({act:'click',blk:'BMC098',pos:'TC5',label:'更换球队'});directSkip('team')" disabled>🔄 更换球队 <span id="skipTeamCount">1次</span></button>
+        <button class="btn btn-secondary btn-xs" id="skipYearBtn" onclick="window.ColorboxAI&&window.ColorboxAI.track({act:'click',blk:'BMC098',pos:'TC6',label:'更换年份'});directSkip('year')" disabled>🔄 更换年份 <span id="skipYearCount">1次</span></button>
+      </div>
+
+    </div>
+
+    <!-- PLAYER SELECTION -->
+    <div id="playerSection" style="display:none;">
+      <div class="player-section-header">
+        <h3>选择你的球员</h3>
+        <span style="font-size:0.7rem; color:var(--text-muted);" id="playerHint">点击球员加入阵容</span>
+      </div>
+      <div class="filter-tabs">
+        <span class="filter-tab active" data-tab="all" onclick="setFilterTab('all')">全部</span>
+        <span class="filter-tab" data-tab="g" onclick="setFilterTab('g')">后卫</span>
+        <span class="filter-tab" data-tab="f" onclick="setFilterTab('f')">前锋</span>
+        <span class="filter-tab" data-tab="c" onclick="setFilterTab('c')">中锋</span>
+      </div>
+
+      <div class="player-grid" id="playerGrid"></div>
+    </div>
+
+    <!-- CAPTAIN SELECTION -->
+    <div class="captain-section" id="captainSection" style="display:none;">
+      <div class="captain-header">
+        <h3>选择你的队长 🏆</h3>
+        <span>队长将获得属性加成，点击球员设为队长</span>
+      </div>
+      <div class="captain-grid" id="captainGrid"></div>
+      <div class="captain-boost-hint" id="captainBoostHint"></div>
+      <button class="btn btn-gold" onclick="confirmCaptain()" style="width:220px;justify-content:center;margin-top:12px;">⚔️&nbsp; 确认开战</button>
+    </div>
+  </div>
+
+  <!-- ========== RESULT SCREEN ========== -->
+  <div id="screen-result" class="screen">
+    <div class="sim-results">
+      <div style="text-align:center;">
+        <p style="font-size:0.7rem;text-transform:uppercase;letter-spacing:2px;color:var(--text-muted);margin-bottom:4px;">预测战绩</p>
+        <p class="final-record" id="finalRecord" style="font-size:clamp(3.5rem,10vw,5.5rem);">0-82</p>
+        <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:8px;">
+          <span class="grade-badge" id="resultGrade" style="color:#60a5fa;">D</span>
+          <span id="resultTier" style="font-size:0.95rem;font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:1px;">TANKING</span>
+        </div>
+      </div>
+      <div class="result-verdict" id="resultVerdict" style="display:none;"></div>
+      <div class="threshold-note" id="thresholdNote" style="display:none"></div>
+
+      <div class="sim-bar-container" style="display:none">
+        <div class="sim-bar-bg">
+          <div class="sim-bar-fill" id="simBarFill"></div>
+          <div class="sim-bar-label" id="simBarLabel">0 Wins</div>
+        </div>
+      </div>
+
+      <div class="roster-final" id="rosterFinal" style="margin-top:24px;"></div>
+
+      <div style="margin-top:30px;display:flex;flex-direction:column;gap:12px;align-items:center;width:100%;">
+        <button class="btn btn-primary" onclick="window.ColorboxAI&&window.ColorboxAI.track({act:'click',blk:'BMC098',pos:'TC7',label:'生成海报'});generatePoster()" style="width:220px;justify-content:center;background:linear-gradient(135deg,#7c3aed,#6d28d9);box-shadow:0 4px 20px rgba(124,58,237,0.35);">📷 生成海报</button>
+        <button class="btn btn-gold" onclick="window.ColorboxAI&&window.ColorboxAI.track({act:'click',blk:'BMC098',pos:'TC8',label:'再来一局'});startGame()" style="width:220px;justify-content:center;">🔄 &nbsp;再来一局</button>
+        <button class="btn btn-secondary" onclick="window.ColorboxAI&&window.ColorboxAI.track({act:'click',blk:'BMC098',pos:'TC9',label:'查看其他JRs的成绩'});safeNavigate('huputiyu://bbs/topicTag?tagId=148405', '_self', 'click_view_ranking')" style="width:220px;justify-content:center;color:var(--accent-light);">👥 查看其他JRs的成绩</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 排行弹窗 -->
+<div id="rankingModal" style="position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:99999;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;">
+  <div id="rankingModalContent" style="width:100%;max-width:480px;max-height:85vh;overflow-y:auto;background:var(--court-dark);border-radius:20px;padding:24px 18px;border:1px solid var(--card-border);box-shadow:0 20px 60px rgba(0,0,0,0.6);"></div>
+  <button class="btn btn-secondary" onclick="closeRankingModal()" style="margin-top:16px;min-width:200px;justify-content:center;">✕ 关闭</button>
+</div>
+
+<!-- 海报预览 -->
+<canvas id="posterCanvas" style="display:none"></canvas>
+<div id="posterOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:99999;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;">
+  <img id="posterPreviewImg" alt="海报预览" style="max-width:100%;max-height:75vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.6);">
+  <div style="display:flex;flex-direction:column;gap:12px;margin-top:20px;width:100%;max-width:280px;align-items:center;">
+    <button class="btn btn-primary" id="sharePosterBtn" onclick="window.ColorboxAI&&window.ColorboxAI.track({act:'click',blk:'BMC098',pos:'TC10',label:'一键发帖'});sharePoster(this)" style="width:100%;justify-content:center;background:linear-gradient(135deg,#7c3aed,#a855f7);box-shadow:0 8px 20px rgba(124,58,237,0.35);color:#fff;">📤 一键发帖</button>
+    <button class="btn btn-gold" onclick="window.ColorboxAI&&window.ColorboxAI.track({act:'click',blk:'BMC098',pos:'TC11x',label:'查看排行'});viewRankingFromPoster()" style="width:100%;justify-content:center;background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 8px 20px rgba(245,158,11,0.35);color:#fff;">📊 查看排行</button>
+    <button class="btn btn-secondary" onclick="window.ColorboxAI&&window.ColorboxAI.track({act:'click',blk:'BMC098',pos:'TC11',label:'取消'});closePoster()" style="width:100%;justify-content:center;">✕ 取消</button>
+  </div>
+</div>
+
+<!-- How-to Modal -->
+<div class="howto-overlay" id="howtoOverlay">
+  <div class="howto-box">
+    <h3>📋 玩法说明</h3>
+    <ul>
+      <li><strong>5轮选秀，25个赛季</strong> — 每轮老虎机会随机抽出一个<strong>NBA球队</strong>和<strong>赛季</strong>，你从该球队该赛季中挑选一名球员。</li>
+      <li><strong>赛季不限，自由选择</strong> — 全部<strong>25个赛季</strong>（2000-01至2024-25）每轮都可出现，可重复选择同一赛季。</li>
+      <li><strong>数据为王</strong> — 只有<strong>得分、篮板、助攻</strong> 计入评分。模拟引擎根据这些数据计算球队强度。</li>
+      <li><strong>跳过机会</strong> — 每局有<strong>1次球队跳过</strong>和<strong>1次年份跳过</strong>，遇到弱组合时使用。</li>
+      <li><strong>非线性模拟</strong> — 82场赛季预测采用曲线模型，越接近82胜越难。只有完美平衡的阵容才能82-0。</li>
+    </ul>
+    <button class="btn btn-secondary" onclick="closeHowTo()">我知道了</button>
+  </div>
+</div>
+
+<!-- Skip Confirm Modal -->
+<div id="skipModal" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <h3 id="skipModalTitle">Skip?</h3>
+    <p id="skipModalDesc">Are you sure you want to skip?</p>
+    <div class="modal-buttons">
+      <button class="btn btn-primary" id="skipConfirmBtn" onclick="window.ColorboxAI&&window.ColorboxAI.track({act:'click',blk:'BMC098',pos:'TC12',label:'是的，跳过'});executeSkip()">是的，跳过</button>
+      <button class="btn btn-secondary" onclick="window.ColorboxAI&&window.ColorboxAI.track({act:'click',blk:'BMC098',pos:'TC13',label:'取消'});closeSkipModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-msg" id="toastMsg"></div>
+
+<!-- App Intercept Modal -->
+<div class="app-intercept-overlay" id="appInterceptOverlay">
+  <div class="app-intercept-box">
+    <div class="icon">📱</div>
+    <h3>请使用虎扑App打开</h3>
+    <p>发帖功能仅支持在虎扑App内参与，请进入虎扑App内发帖分享你的战绩</p>
+    <button class="btn btn-primary" onclick="retryOpenApp()" style="margin-bottom:10px;">打开虎扑App</button>
+    <button class="btn btn-secondary" onclick="closeAppIntercept()">我知道了</button>
+  </div>
+</div>
+
+<script src="./nba-data.js"></script>
+
+<script>
+// ===================================================================
+//  APP CHECK
+// ===================================================================
+function getIsInApp() {
+  return /kanqiu|huputiyu/i.test(window.navigator.userAgent || "");
+}
+
+function closeAppIntercept() {
+  document.getElementById('appInterceptOverlay').classList.remove('show');
+}
+
+function showAppIntercept() {
+  document.getElementById('appInterceptOverlay').classList.add('show');
+}
+
+function retryOpenApp() {
+  closeAppIntercept();
+  const currentUrl = window.location.href;
+  const schemeUrl = 'huputiyu://webview/openencodeurl?fullscreen=0&url=' + encodeURIComponent(currentUrl);
+  window.location.href = schemeUrl;
+}
+
+function showToast(text) {
+  var el = document.getElementById('toastMsg');
+  if (!el) return;
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(function() {
+    el.classList.remove('show');
+  }, 1700);
+}
+
+function handleStartGame() {
+  startGame();
+}
+
+// ===================================================================
+//  NBA_DATA — 从 nba-data.js 加载数据
+// ===================================================================
+
+let NBA_DATA = null;
+let DATA_READY = Promise.resolve();
+
+(function() {
+  const data = NBA_DATA_RAW;
+  const result = {};
+  data.forEach(p => {
+    const season = p.season;
+    const team = p.team;
+    if (!result[season]) result[season] = {};
+    if (!result[season][team]) result[season][team] = [];
+    result[season][team].push({
+      name: p.cname || p.player,
+      pos: p.pos,
+      positions: p.positions || [],
+      salary: p.salary,
+      stats: {
+        pts: p.ppg,
+        reb: p.rpg,
+        ast: p.apg,
+        stl: p.spg,
+        blk: p.bpg
+      }
+    });
+  });
+  NBA_DATA = result;
+  console.log('NBA_DATA loaded from nba-data.js:', Object.keys(NBA_DATA).length, 'seasons, total players:', data.length);
+})();
+
+// Filter tab for player selection
+let _filterTab = 'all';
+
+function setFilterTab(tab) {
+  _filterTab = tab;
+  document.querySelectorAll('.filter-tab').forEach(el => {
+    el.classList.toggle('active', el.dataset.tab === tab);
+  });
+  // Re-render current player list with new filter
+  if (game.currentTeam && game.currentSeason) {
+    renderPlayerGrid(game.currentTeam, game.currentSeason);
+  }
+}
+
+// Helper: get players for a team in a season
+function getPlayers(season, team) {
+  return NBA_DATA?.[season]?.[team] || [];
+}
+// Helper: get all available teams in a season
+function getTeams(season) {
+  return Object.keys(NBA_DATA?.[season] || {});
+}
+
+// Team names - no longer needed as we use full names directly
+const TEAM_NAMES = {};
+
+const ALL_SEASONS = ["2000-01","2001-02","2002-03","2003-04","2004-05","2005-06","2006-07","2007-08","2008-09","2009-10","2010-11","2011-12","2012-13","2013-14","2014-15","2015-16","2016-17","2017-18","2018-19","2019-20","2020-21","2021-22","2022-23","2023-24","2024-25"];
+const MAX_ROUNDS = 5;
+// TEAMS helper - computed dynamically since NBA_DATA is loaded async
+function getTeamsList() {
+  if (!NBA_DATA) return [];
+  const teamSet = new Set();
+  Object.values(NBA_DATA).forEach(season => {
+    Object.keys(season).forEach(team => teamSet.add(team));
+  });
+  return [...teamSet];
+}
+
+// Game state
+let game = {
+  round: 0,
+  roster: [],
+  usedSeasons: [],
+  usedCombos: [],
+  skipTeam: 1,
+  skipYear: 1,
+  currentTeam: null,
+  currentSeason: null,
+  spun: false,
+  skipPending: null, // 'team' or 'year'
+  captain: null, // 队长所在position key, e.g. 'PG'. null = 未选
+};
+
+// ===================================================================
+//  TEAM COLORS — extracted from 常用队徽/*.png
+// ===================================================================
+const TEAM_COLORS = {
+  "ATL": ["#b42b33","#c76169"],"BKN": ["#c6c6c6","#505050"],"BOS": ["#488a50","#223425"],
+  "CHA": ["#25225a","#384a7b"],"CHI": ["#d93831","#da2f2e"],"CLE": ["#860038","#BC945C"],
+  "DAL": ["#2d6ab7","#c5cdd4"],"DEN": ["#418fde","#418fde"],"DET": ["#c42e47","#254f9d"],
+  "GSW": ["#eeba4b","#283f85"],"HOU": ["#ad342c","#ffffff"],"IND": ["#eac962","#142356"],
+  "LAC": ["#002650","#0b3666"],"LAL": ["#f1bc4b","#50247c"],"MEM": ["#14163b","#5d75ad"],
+  "MIA": ["#a32a2e","#261c22"],"MIL": ["#dcd4b4","#304c38"],"MIN": ["#b6c8d3","#244f7d"],
+  "NOP": ["#ae9b6d","#ae9b6d"],"NYK": ["#d86a34","#1c399f"],"OKC": ["#4876b6","#1c233d"],
+  "ORL": ["#3053ad","#3053ae"],"PHI": ["#3063b0","#2f61af"],"PHX": ["#f6ca57","#c86d36"],
+  "POR": ["#ab2f32","#6a1d1f"],"SAC": ["#55277f","#3a0e63"],"SAS": ["#c7cdd4","#34393d"],
+  "TOR": ["#a2a2a4","#b12a32"],"UTA": ["#15203e","#14223e"],"WAS": ["#16213d","#bd2a33"]
+};
+
+// ===================================================================
+//  POSTER_CARD_COLORS — 海报卡片专用色卡
+//  独立于选框UI色号。浅色球队已替换为深色方案，保留球队主题。
+//  选框UI仍使用 TEAM_COLORS（上方），海报使用此色卡以在浅色背景上清晰显示。
+// ===================================================================
+const POSTER_CARD_COLORS = {
+  "ATL": "#b42b33","BKN": "#505050","BOS": "#488a50","CHA": "#25225a","CHI": "#d93831",
+  "CLE": "#860038","DAL": "#2d6ab7","DEN": "#418fde","DET": "#c42e47","GSW": "#283f85",
+  "HOU": "#ad342c","IND": "#C8961E","LAC": "#002650","LAL": "#50247c","MEM": "#14163b",
+  "MIA": "#a32a2e","MIL": "#304c38","MIN": "#244f7d","NOP": "#ae9b6d","NYK": "#d86a34",
+  "OKC": "#4876b6","ORL": "#3053ad","PHI": "#3063b0","PHX": "#c86d36","POR": "#ab2f32",
+  "SAC": "#55277f","SAS": "#34393d","TOR": "#8B0000","UTA": "#15203e","WAS": "#16213d"
+};
+
+
+
+// ===================================================================
+//  SEASON BENCHMARKS & POSITION WEIGHTS
+// ===================================================================
+// Season benchmarks computed dynamically from NBA_DATA after loading
+let SEASON_BENCHMARKS = {};
+
+// Compute season benchmarks from actual data
+(function() {
+  for (const [season, teams] of Object.entries(NBA_DATA)) {
+    let t = {pts:0,reb:0,ast:0,stl:0,blk:0}, n = 0;
+    for (const ps of Object.values(teams)) {
+      for (const p of ps) {
+        t.pts += p.stats.pts; t.reb += p.stats.reb;
+        t.ast += p.stats.ast; t.stl += p.stats.stl||0;
+        t.blk += p.stats.blk||0; n++;
+      }
+    }
+    if (n) SEASON_BENCHMARKS[season] = {
+      pts: t.pts/n, reb: t.reb/n, ast: t.ast/n,
+      stl: t.stl/n, blk: t.blk/n
+    };
+  }
+  console.log('SEASON_BENCHMARKS computed for', Object.keys(SEASON_BENCHMARKS).length, 'seasons');
+})();
+
+const POSITION_WEIGHTS = {
+  PG: { pts: 0.4, reb: 0.1, ast: 0.35, stl: 0.1, blk: 0.05 },
+  SG: { pts: 0.45, reb: 0.1, ast: 0.2,  stl: 0.2, blk: 0.05 },
+  SF: { pts: 0.45, reb: 0.15, ast: 0.2, stl: 0.15, blk: 0.05 },
+  PF: { pts: 0.4,  reb: 0.3, ast: 0.1,  stl: 0.1, blk: 0.1 },
+  C:  { pts: 0.4,  reb: 0.35, ast: 0.1, stl: 0.05, blk: 0.1 },
+};
+
+// Chinese team names (不带地名)
+const TEAM_CN = {
+  ATL:"老鹰",BKN:"篮网",BOS:"凯尔特人",CHA:"黄蜂",CHI:"公牛",
+  CLE:"骑士",DAL:"独行侠",DEN:"掘金",DET:"活塞",GSW:"勇士",
+  HOU:"火箭",IND:"步行者",LAC:"快船",LAL:"湖人",MEM:"灰熊",
+  MIA:"热火",MIL:"雄鹿",MIN:"森林狼",NOP:"鹈鹕",NYK:"尼克斯",
+  OKC:"雷霆",ORL:"魔术",PHI:"76人",PHX:"太阳",POR:"开拓者",
+  SAC:"国王",SAS:"马刺",TOR:"猛龙",UTA:"爵士",WAS:"奇才"
+};
+function teamCN(abbr) { return TEAM_CN[abbr] || abbr; }
+
+const STAT_KEYS = ['pts','reb','ast','stl','blk'];
+
+const TEAM_GRADE_BANDS = [
+  { min: 80, grade: "S",  label: "完美赛季", color: "#a855f7" },
+  { min: 72, grade: "A+", label: "历史级强队", color: "#22c55e" },
+  { min: 62, grade: "A",  label: "王朝球队", color: "#22c55e" },
+  { min: 57, grade: "B",  label: "有力竞争者", color: "#3b82f6" },
+  { min: 50, grade: "C",  label: "季后赛球队", color: "#f59e0b" },
+  { min: 40, grade: "D",  label: "乐透球队", color: "#64748b" },
+  { min: 0,  grade: "F",  label: "摆烂大军", color: "#ef4444" },
+];
+
+const INTANGIBLES = new Set([
+  "larry bird","tim duncan","kevin durant","magic johnson",
+  "shaquille o'neal","hakeem olajuwon","bill russell","kobe bryant",
+  "oscar robertson","karl malone","kevin garnett","isiah thomas",
+  "tony parker","manu ginobili","draymond green","scottie pippen",
+  "dennis rodman","stephen curry","nikola jokic","dirk nowitzki",
+]);
+
+// ===================================================================
+//  PARTICLES
+// ===================================================================
+function initParticles() {
+  const canvas = document.getElementById('particles-canvas');
+  const ctx = canvas.getContext('2d');
+  let w, h, particles = [];
+
+  function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  for (let i = 0; i < 40; i++) {
+    particles.push({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      r: Math.random() * 1.5 + 0.3,
+      dx: (Math.random() - 0.5) * 0.2,
+      dy: (Math.random() - 0.5) * 0.15,
+      o: Math.random() * 0.25 + 0.05,
+      color: Math.random() > 0.6 ? '245,158,11' : (Math.random() > 0.5 ? '232,93,38' : '139,92,246')
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, w, h);
+    particles.forEach(p => {
+      p.x += p.dx;
+      p.y += p.dy;
+      if (p.x < 0) p.x = w;
+      if (p.x > w) p.x = 0;
+      if (p.y < 0) p.y = h;
+      if (p.y > h) p.y = 0;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${p.color},${p.o})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// ===================================================================
+//  SCREEN MANAGEMENT
+// ===================================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const header = document.querySelector('.header');
+  const img = header.querySelector('.header-img');
+  header.style.display = id === 'screen-result' ? 'none' : '';
+  if (id === 'screen-menu') {
+    header.style.padding = '0 0 4px';
+    if (img) img.style.display = '';
+    document.getElementById('gameHeaderText').style.display = 'none';
+  } else if (id === 'screen-game') {
+    header.style.padding = '0';
+    if (img) img.style.display = 'none';
+    document.getElementById('gameHeaderText').style.display = 'block';
+  } else {
+    header.style.padding = '0 0 4px';
+    if (img) img.style.display = 'none';
+  }
+  const container = document.querySelector('.app-container');
+  container.classList.toggle('game-active', id === 'screen-game');
+}
+
+function showMenu() {
+  showScreen('screen-menu');
+}
+
+function toggleHowTo() {
+  document.getElementById('howtoOverlay').classList.add('show');
+}
+
+function closeHowTo() {
+  document.getElementById('howtoOverlay').classList.remove('show');
+}
+
+// ===================================================================
+//  GAME INIT
+// ===================================================================
+async function startGame() {
+  // Ensure data is loaded
+  if (DATA_READY) {
+    await DATA_READY;
+  }
+  game = {
+    round: 0,
+    roster: [],
+    slots: { PG: null, SG: null, SF: null, PF: null, C: null },
+    usedSeasons: [],
+    usedCombos: [],
+    skipTeam: 1,
+    skipYear: 1,
+    currentTeam: null,
+    currentSeason: null,
+    spun: false,
+    skipPending: null,
+    captain: null,
+  };
+  pendingPick = null;
+  moveState = null;
+  showScreen('screen-game');
+  renderRosterBar();
+  nextRound();
+}
+
+// ===================================================================
+//  POSITION SLOTS
+// ===================================================================
+const POS_ORDER = ['PG','SG','SF','C','PF'];
+
+function getPositions(posStr) {
+  if (!posStr) return [];
+  return posStr.split('/').map(p => p.trim()).filter(p => POS_ORDER.includes(p));
+}
+
+function getEmptyPositions(posStr) {
+  return getPositions(posStr).filter(p => !game.slots[p]);
+}
+
+function getFullPositions(posStr) {
+  return getPositions(posStr).filter(p => game.slots[p]);
+}
+
+function renderRosterBar() {
+  const bar = document.getElementById('rosterBar');
+  // Top row: PG, SG | Bottom row: SF, C, PF
+  const topRow = ['PG','SG'];
+  const bottomRow = ['SF','C','PF'];
+  
+  function renderSlot(pos) {
+    const p = game.slots[pos];
+    const filled = !!p;
+    let extraCls = '';
+    
+    // Check if this slot should be highlighted (pendingPick or moveState)
+    const isHighlightTarget = (!filled && pendingPick && pendingPick.positions.includes(pos)) ||
+                              (!filled && moveState && moveState.targetPositions.includes(pos));
+    const isMoveSource = (filled && moveState && moveState.currentPos === pos);
+    if (isHighlightTarget) extraCls += ' highlight';
+    if (isMoveSource) extraCls += ' move-source';
+    if (isHighlightTarget || isMoveSource) extraCls += ' clickable';
+    
+    const cls = (filled ? 'pos-slot filled' : 'pos-slot') + extraCls;
+    
+    if (p) {
+      const colors = TEAM_COLORS[p.team] || ['#333','#555'];
+      const mainColor = colors[0];
+      const color2 = colors[1] || mainColor;
+      const captainCls = game.captain === pos ? ' captain-slot' : '';
+      const style = `background:linear-gradient(135deg, ${mainColor}ee, ${color2}dd);border-color:${mainColor};box-shadow:0 4px 16px ${mainColor}44, inset 0 1px 0 rgba(255,255,255,0.15);`;
+      return `<div class="${cls}${captainCls}" style="${style}" data-pos="${pos}"
+                onclick="onFilledSlotClick('${pos}')">
+        ${game.captain === pos ? '<span class="captain-badge">C</span>' : ''}
+        <span class="slot-player-name">${p.name.split('-').pop()}</span>
+        <span class="slot-team-season">${teamCN(p.team)} · ${p.season}</span>
+        ${p.salary ? `<span class="slot-player-salary">$${p.salary}M</span>` : ''}
+      </div>`;
+    } else {
+      return `<div class="${cls}" data-pos="${pos}"
+                onclick="onEmptySlotClick('${pos}')">
+        <span class="pos-label">${pos}</span>
+      </div>`;
+    }
+  }
+  
+  let html = '<div class="pos-slots">';
+  html += '<div class="pos-slots-row">';
+  topRow.forEach(pos => { html += renderSlot(pos); });
+  html += '</div>';
+  html += '<div class="pos-slots-row">';
+  bottomRow.forEach(pos => { html += renderSlot(pos); });
+  html += '</div>';
+  html += '</div>';
+  
+  bar.innerHTML = html;
+  updateSkipBadges();
+}
+
+
+
+// ===================================================================
+//  ROUND PROGRESSION
+// ===================================================================
+function nextRound() {
+  if (game.round >= MAX_ROUNDS) {
+    showCaptainSelection();
+    return;
+  }
+  game.spun = false;
+  game.currentTeam = null;
+  game.currentSeason = null;
+
+  document.getElementById('roundLabel').textContent = `第 ${game.round + 1} / ${MAX_ROUNDS} 轮`;
+  document.getElementById('roundDesc').textContent = '';
+  document.getElementById('spinBtn').disabled = false;
+  document.getElementById('spinBtn').textContent = '🎰  随机';
+  document.getElementById('skipTeamBtn').disabled = true;
+  document.getElementById('skipYearBtn').disabled = true;
+  document.getElementById('playerSection').style.display = 'none';
+  document.getElementById('captainSection').style.display = 'none';
+  document.getElementById('slotSection').style.display = '';
+  document.getElementById('selectionHint').style.display = '';
+
+  // Reset reel display
+  document.getElementById('teamReelText').textContent = '???';
+  document.getElementById('yearReelText').textContent = '???';
+  document.getElementById('teamReel').classList.remove('spinning');
+  document.getElementById('yearReel').classList.remove('spinning');
+
+  renderRosterBar();
+}
+
+// ===================================================================
+//  SLOT MACHINE
+// ===================================================================
+function spinSlot() {
+  if (game.spun) return;
+  const spinBtn = document.getElementById('spinBtn');
+  spinBtn.disabled = true;
+  spinBtn.textContent = '🎰 转动中...';
+
+  const teamReel = document.getElementById('teamReel');
+  const yearReel = document.getElementById('yearReel');
+  const teamText = document.getElementById('teamReelText');
+  const yearText = document.getElementById('yearReelText');
+
+  teamReel.classList.add('spinning');
+  yearReel.classList.add('spinning');
+
+  const allSeasons = Object.keys(NBA_DATA);
+
+  // Decelerating spin: start fast, slow down near the end
+  let spinCount = 0;
+  const totalSpins = 22;
+  let interval = 60;
+
+  function doSpin() {
+    const randSeason = allSeasons[Math.floor(Math.random() * allSeasons.length)];
+    const seasonTeams = Object.keys(NBA_DATA[randSeason] || {});
+    const randTeam = seasonTeams[Math.floor(Math.random() * seasonTeams.length)];
+    teamText.textContent = teamCN(randTeam);
+    yearText.textContent = randSeason;
+    spinCount++;
+
+    if (spinCount >= totalSpins) {
+      // Final result
+      const result = getSlotResult();
+      game.currentTeam = result.team;
+      game.currentSeason = result.season;
+      game.usedCombos.push(result.season + '|' + result.team);
+
+      teamText.textContent = teamCN(result.team);
+      yearText.textContent = result.season;
+      teamReel.classList.remove('spinning');
+      yearReel.classList.remove('spinning');
+      teamReel.classList.add('settled');
+      yearReel.classList.add('settled');
+      teamReel.style.borderColor = 'var(--success)';
+      teamReel.style.boxShadow = '0 0 20px rgba(34,197,94,0.2), inset 0 0 20px rgba(34,197,94,0.05)';
+      yearReel.style.borderColor = 'var(--success)';
+      yearReel.style.boxShadow = '0 0 20px rgba(34,197,94,0.2), inset 0 0 20px rgba(34,197,94,0.05)';
+
+      game.spun = true;
+      spinBtn.textContent = '✓ 锁定';
+      document.getElementById('roundDesc').textContent =
+        `球队: ${teamCN(result.team)}     年份: ${result.season}`;
+
+      // Enable skips
+      document.getElementById('skipTeamBtn').disabled = game.skipTeam <= 0;
+      document.getElementById('skipYearBtn').disabled = game.skipYear <= 0;
+
+      // Wait a beat for spin to settle, then show players
+      setTimeout(() => showPlayers(result.team, result.season), 800);
+    } else {
+      // Decelerate: gradually increase interval
+      interval = 60 + Math.pow(spinCount / totalSpins, 2) * 120;
+      setTimeout(doSpin, interval);
+    }
+  }
+  doSpin();
+}
+
+function getSlotResult() {
+  // Collect all possible (season, team) combos, excluding already used ones
+  const usedSet = new Set(game.usedCombos || []);
+  const allCombos = [];
+  for (const season of Object.keys(NBA_DATA)) {
+    for (const team of Object.keys(NBA_DATA[season])) {
+      if (!usedSet.has(season + '|' + team)) {
+        allCombos.push({ team, season });
+      }
+    }
+  }
+  // If all combos used (unlikely), pick any combo
+  if (allCombos.length === 0) {
+    const seasons = Object.keys(NBA_DATA);
+    const s = seasons[0];
+    const t = Object.keys(NBA_DATA[s])[0];
+    return { team: t, season: s };
+  }
+  return allCombos[Math.floor(Math.random() * allCombos.length)];
+}
+
+// ===================================================================
+//  SKIP MECHANICS
+// ===================================================================
+let skipResolve = null;
+
+function confirmSkip(type) {
+  // If a draft confirmation is showing, clear it first
+  if (pendingPick) {
+    document.querySelectorAll('.player-card.selected').forEach(c => c.classList.remove('selected'));
+    pendingPick = null;
+  }
+  const modal = document.getElementById('skipModal');
+  document.getElementById('skipModalTitle').textContent = type === 'team' ? '⏭️ 跳过球队？' : '⏭️ 跳过年份？';
+  document.getElementById('skipModalDesc').textContent =
+    type === 'team'
+      ? '将在同一赛季重新随机一支球队。剩余 ' + game.skipTeam + ' 次球队跳过。'
+      : '将重新随机赛季和球队。剩余 ' + game.skipYear + ' 次年份跳过。';
+  modal.style.display = 'flex';
+  game.skipPending = type;
+  document.getElementById('skipConfirmBtn').textContent = '是的，跳过';
+  document.getElementById('skipConfirmBtn').onclick = executeSkip;
+}
+
+function directSkip(type) {
+  game.skipPending = type;
+  executeSkip();
+}
+
+function closeSkipModal() {
+  document.getElementById('skipModal').style.display = 'none';
+  // Only cleanup when cancelling, not when executeSkip calls it
+  if (arguments.length === 0) {
+    if (game.skipPending) {
+      game.skipPending = null;
+    } else {
+      clearPending();
+    }
+  }
+}
+
+function executeSkip() {
+  const type = game.skipPending;
+  if (!type) return;
+  // Hide modal without side effects
+  closeSkipModal(true);
+  game.skipPending = null;
+
+  // Disable skip buttons during animation
+  document.getElementById('skipTeamBtn').disabled = true;
+  document.getElementById('skipYearBtn').disabled = true;
+  document.getElementById('spinBtn').disabled = true;
+
+  const teamReel = document.getElementById('teamReel');
+  const yearReel = document.getElementById('yearReel');
+  const teamText = document.getElementById('teamReelText');
+  const yearText = document.getElementById('yearReelText');
+
+  if (type === 'team' && game.skipTeam > 0) {
+    game.skipTeam--;
+    // Keep same season, change team (avoid already-used combos)
+    const seasonTeams = getTeams(game.currentSeason);
+    const usedSet = new Set(game.usedCombos || []);
+    const otherTeams = seasonTeams.filter(t => !usedSet.has(game.currentSeason + '|' + t));
+    const finalTeam = otherTeams.length > 0
+      ? otherTeams[Math.floor(Math.random() * otherTeams.length)]
+      : seasonTeams.filter(t => t !== game.currentTeam)[Math.floor(Math.random() * (seasonTeams.length - 1))] || seasonTeams[0];
+
+    teamReel.classList.add('spinning');
+    let count = 0;
+    const interval = setInterval(() => {
+      teamText.textContent = teamCN(seasonTeams[Math.floor(Math.random() * seasonTeams.length)]);
+      count++;
+      if (count > 15) {
+        clearInterval(interval);
+        game.currentTeam = finalTeam;
+        teamText.textContent = teamCN(finalTeam);
+        teamReel.classList.remove('spinning');
+        teamReel.style.borderColor = 'var(--success)';
+        finishSkip();
+      }
+    }, 80);
+
+  } else if (type === 'year' && game.skipYear > 0) {
+    game.skipYear--;
+    // Keep same team, change to a different season where this team exists (avoid already-used combos)
+    const teamName = game.currentTeam;
+    const teamSeasons = Object.keys(NBA_DATA).filter(s =>
+      NBA_DATA[s] && NBA_DATA[s][teamName]
+    );
+    const usedSet = new Set(game.usedCombos || []);
+    const otherSeasons = teamSeasons.filter(s => !usedSet.has(s + '|' + teamName));
+    if (otherSeasons.length === 0) { finishSkip(); return; }
+    const finalSeason = otherSeasons[Math.floor(Math.random() * otherSeasons.length)];
+
+    // Only animate the year reel — team stays the same
+    yearReel.classList.add('spinning');
+    let count = 0;
+    const interval = setInterval(() => {
+      const rs = teamSeasons[Math.floor(Math.random() * teamSeasons.length)];
+      yearText.textContent = rs;
+      count++;
+      if (count > 15) {
+        clearInterval(interval);
+        game.currentSeason = finalSeason;
+        yearText.textContent = finalSeason;
+        yearReel.classList.remove('spinning');
+        teamReel.style.borderColor = 'var(--success)';
+        yearReel.style.borderColor = 'var(--success)';
+        finishSkip();
+      }
+    }, 80);
+
+  } else {
+    closeSkipModal(true);
+    return;
+  }
+
+  function finishSkip() {
+    game.usedCombos.push(game.currentSeason + '|' + game.currentTeam);
+    updateSkipBadges();
+    document.getElementById('skipTeamBtn').disabled = game.skipTeam <= 0;
+    document.getElementById('skipYearBtn').disabled = game.skipYear <= 0;
+    document.getElementById('roundDesc').textContent =
+      `${teamCN(game.currentTeam)} · ${game.currentSeason} (已跳过)`;
+    showPlayers(game.currentTeam, game.currentSeason);
+  }
+}
+
+function updateSkipBadges() {
+  document.getElementById('skipTeamCount').textContent = `${game.skipTeam}次`;
+  document.getElementById('skipYearCount').textContent = `${game.skipYear}次`;
+}
+
+// ===================================================================
+//  PLAYER SELECTION
+// ===================================================================
+let _topPool = [];
+
+function renderPlayerGrid(team, season) {
+  const grid = document.getElementById('playerGrid');
+
+  // On first render (tab === 'all'), build the pool: top 15 + worst 5
+  if (_filterTab === 'all') {
+    const players = NBA_DATA[season] ? (NBA_DATA[season][team] || []) : [];
+    const draftedNames = game.roster.map(r => r.name);
+    let all = players.filter(p => !draftedNames.includes(p.name));
+    // Sort by combined PTS+REB+AST, then take top 15 + worst 5
+    all.sort((a, b) => (b.stats.pts + b.stats.reb + b.stats.ast) - (a.stats.pts + a.stats.reb + a.stats.ast));
+    // 当球员总数 <=20 时直接全取，避免 top15 和 bottom5 重叠导致重复
+    if (all.length <= 20) {
+      _topPool = all.slice();
+    } else {
+      _topPool = [...all.slice(0, 15), ...all.slice(-5)];
+    }
+    // Tag bottom 5 as weak players for rating penalty
+    _topPool.forEach((p, i) => {
+      p._weak = all.length <= 20 ? false : i >= 15;
+    });
+  }
+
+  // G/F/C tabs filter from the top-20 pool
+  let display = _filterTab === 'all' ? _topPool : _topPool.filter(p => {
+    const posList = p.positions && p.positions.length > 0 ? p.positions : (p.pos ? p.pos.split('/') : []);
+    if (_filterTab === 'g') return posList.some(pos => pos === 'PG' || pos === 'SG');
+    if (_filterTab === 'f') return posList.some(pos => pos === 'SF' || pos === 'PF');
+    if (_filterTab === 'c') return posList.some(pos => pos === 'C');
+    return false;
+  });
+
+  if (display.length === 0) {
+    grid.innerHTML = `<div class="no-players">
+      <div class="icon">😅</div>
+      <p>该位置没有可用球员。</p>
+    </div>`;
+    document.getElementById('playerHint').textContent = '该位置没有可用球员';
+    return;
+  }
+
+  // Shuffle for display
+  display = [...display].sort(() => Math.random() - 0.5);
+
+  document.getElementById('playerHint').textContent = '点击球员加入阵容';
+  grid.innerHTML = display.map(p => {
+    const posDisplay = p.pos || '??';
+    const positionsArr = p.positions && p.positions.length > 0 ? p.positions : [posDisplay];
+    const posBadges = positionsArr.map(pos => `<span class="pos-badge">${pos}</span>`).join('');
+    const posDataAttr = encodeURIComponent(JSON.stringify(positionsArr));
+    return `<div class="player-card" data-positions='${posDataAttr}' data-weak="${p._weak ? 1 : 0}" onclick="selectPlayer(this, '${p.name.replace(/'/g, "\\'")}', '${posDisplay}', ${p.stats.pts}, ${p.stats.reb}, ${p.stats.ast}, ${p.stats.stl ?? 0}, ${p.stats.blk ?? 0}, ${p.salary ?? 0})">
+      <div class="player-name">${p.name}</div>
+      <div class="player-positions">${posBadges}</div>
+      <div class="player-salary">$${p.salary}M</div>
+      <div class="player-team">${teamCN(team)} · ${season}</div>
+    </div>`;
+  }).join('');
+}
+
+function showPlayers(team, season) {
+  const section = document.getElementById('playerSection');
+  section.style.display = 'block';
+  // Reset filter tab to all
+  _filterTab = 'all';
+  document.querySelectorAll('.filter-tab').forEach(el => {
+    el.classList.toggle('active', el.dataset.tab === 'all');
+  });
+  renderPlayerGrid(team, season);
+}
+
+// ===================================================================
+//  SELECT PLAYER
+// ===================================================================
+let pendingPick = null;
+let moveState = null;
+
+function clearPending() {
+  pendingPick = null;
+  moveState = null;
+  document.querySelectorAll('.player-card.selected').forEach(c => c.classList.remove('selected'));
+  renderRosterBar();
+  const hint = document.getElementById('playerHint');
+  if (hint) hint.textContent = '点击球员加入阵容';
+}
+
+function selectPlayer(el, name, pos, pts, reb, ast, stl, blk, salary) {
+  // If there's a pending pick or move, cancel it
+  if (pendingPick || moveState) { clearPending(); }
+
+  document.querySelectorAll('.player-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+
+  // Get eligible positions from data attribute
+  let positions;
+  try { positions = JSON.parse(decodeURIComponent(el.dataset.positions)); } catch(e) { positions = null; }
+  if (!positions || positions.length === 0) positions = getPositions(pos);
+
+  // Read weak flag from data attribute
+  const weak = el.dataset.weak === '1';
+
+  // Find which eligible positions are empty
+  const emptyEligible = positions.filter(p => !game.slots[p]);
+
+  if (emptyEligible.length === 0) {
+    el.classList.remove('selected');
+    document.getElementById('playerHint').textContent = `⚠️ ${name} 的可选位置 (${positions.join('/')}) 已满！`;
+    return;
+  }
+
+  // Highlight empty eligible slots for the user to click
+  pendingPick = { name, pos, pts, reb, ast, stl, blk, salary, positions, weak };
+  const posNames = emptyEligible.join('/');
+  document.getElementById('playerHint').textContent = `点击上方闪烁的方框将 ${name} 放入 (${posNames})`;
+  renderRosterBar();
+}
+
+function onEmptySlotClick(pos) {
+  if (pendingPick && pendingPick.positions.includes(pos)) {
+    // Place the player here
+    confirmDraftWith({ ...pendingPick, assignedPos: pos });
+    return;
+  }
+  if (moveState && moveState.targetPositions.includes(pos)) {
+    // Move the player here
+    const player = moveState.player;
+    game.slots[pos] = player;
+    game.slots[moveState.currentPos] = null;
+    player.assignedPos = pos;
+    moveState = null;
+    renderRosterBar();
+    document.getElementById('playerHint').textContent = `已移动 ${player.name} 到 ${pos}`;
+    return;
+  }
+  // Clicked a non-highlighted slot — cancel
+  clearPending();
+}
+
+function onFilledSlotClick(pos) {
+  const player = game.slots[pos];
+  if (!player) return;
+  
+  // If there's a pending pick, cancel it
+  if (pendingPick) { clearPending(); return; }
+  
+  // If already in move mode and clicking the source, cancel
+  if (moveState) {
+    if (moveState.currentPos === pos) { clearPending(); return; }
+    // Clicking a different filled slot — start new move
+  }
+  
+  // Find other eligible empty positions for this player
+  const playerPositions = player.positions || getPositions(player.pos);
+  const emptyEligible = playerPositions.filter(p => p !== pos && !game.slots[p]);
+  
+  if (emptyEligible.length === 0) return; // nowhere to move
+  
+  moveState = { player, currentPos: pos, targetPositions: emptyEligible };
+  document.getElementById('playerHint').textContent = `点击闪烁的方框移动 ${player.name.split('-').pop()}`;
+  renderRosterBar();
+}
+
+// Legacy alias for drag-drop compatibility
+function showPositionPicker() {}
+
+function confirmDraftWith(pick) {
+  const { name, pos, pts, reb, ast, stl, blk, assignedPos } = pick;
+  pendingPick = null;
+  moveState = null;
+
+  document.querySelectorAll('.player-card.selected').forEach(c => c.classList.remove('selected'));
+  document.getElementById('skipModal').style.display = 'none';
+
+  // Place in the assigned position slot
+  const playerPositions = pick.positions || getPositions(pos);
+  game.slots[assignedPos] = { name, pos, positions: playerPositions, assignedPos, team: game.currentTeam, season: game.currentSeason, pts, reb, ast, stl, blk, salary: pick.salary, weak: pick.weak };
+  game.roster.push(game.slots[assignedPos]);
+  game.usedSeasons.push(game.currentSeason);
+  game.round++;
+
+  renderRosterBar();
+
+  // Hide player section
+  document.getElementById('playerSection').style.display = 'none';
+  document.getElementById('spinBtn').disabled = true;
+  document.getElementById('skipTeamBtn').disabled = true;
+  document.getElementById('skipYearBtn').disabled = true;
+  document.getElementById('playerHint').textContent = `✓ ${name} → ${assignedPos} 已选入！`;
+
+  setTimeout(() => {
+    if (game.round >= MAX_ROUNDS) {
+      showCaptainSelection();
+    } else {
+      document.getElementById('teamReel').style.borderColor = 'var(--gold)';
+      document.getElementById('yearReel').style.borderColor = 'var(--gold)';
+      nextRound();
+    }
+  }, 800);
+}
+
+// ===================================================================
+//  CAPTAIN SELECTION
+// ===================================================================
+function showCaptainSelection() {
+  // Hide other sections, show captain section
+  document.getElementById('playerSection').style.display = 'none';
+  document.getElementById('slotSection').style.display = 'none';
+  document.getElementById('selectionHint').style.display = 'none';
+  document.getElementById('captainSection').style.display = 'block';
+  renderCaptainGrid();
+  renderRosterBar();
+}
+
+function renderCaptainGrid() {
+  const grid = document.getElementById('captainGrid');
+  const posOrder = ['PG','SG','SF','PF','C'];
+  let html = '';
+  posOrder.forEach(pos => {
+    const p = game.slots[pos];
+    if (!p) return;
+    const isSelected = game.captain === pos;
+    const cls = 'captain-card' + (isSelected ? ' selected' : '');
+    html += `<div class="${cls}" onclick="selectCaptain('${pos}')">
+      <span class="captain-pos">${pos}</span>
+      <span class="captain-name">${p.name.split('-').pop()}</span>
+      <span class="captain-info">
+        <div>${teamCN(p.team)} · ${p.season}</div>
+        <div class="salary">$${p.salary}M</div>
+      </span>
+      <span class="captain-mark">C</span>
+    </div>`;
+  });
+  grid.innerHTML = html;
+
+  // Update boost hint
+  updateCaptainBoostHint();
+}
+
+function selectCaptain(pos) {
+  if (game.captain === pos) {
+    game.captain = null; // Toggle off
+  } else {
+    game.captain = pos;
+  }
+  renderCaptainGrid();
+  renderRosterBar();
+}
+
+function updateCaptainBoostHint() {
+  const hint = document.getElementById('captainBoostHint');
+  if (!game.captain) {
+    hint.textContent = '未选择队长，将无属性加成';
+    return;
+  }
+  const p = game.slots[game.captain];
+  if (!p) { hint.textContent = ''; return; }
+  const boost = captainBoost(p);
+  const pct = Math.round((boost - 1) * 100);
+  hint.textContent = `${p.name.split('-').pop()} 队长加成：+${pct}% 属性增幅`;
+}
+
+function confirmCaptain() {
+  // Run simulation with (or without) captain
+  runSimulation();
+}
+
+// ===================================================================
+//  CAPTAIN BOOST — dynamic 1.15x ~ 1.30x based on player vs benchmark
+// ===================================================================
+function captainBoost(p) {
+  // Not captain = no boost
+  if (game.captain !== p.assignedPos) return 1.0;
+
+  const bench = SEASON_BENCHMARKS[p.season] || SEASON_BENCHMARKS["2024-25"];
+  // Calculate weighted average ratio of this player's stats vs season benchmark
+  let totalRatio = 0, count = 0;
+  STAT_KEYS.forEach(k => {
+    const v = p[k];
+    if (isNum(v) && bench[k] > 0) {
+      totalRatio += v / bench[k];
+      count++;
+    }
+  });
+  const avgRatio = count > 0 ? totalRatio / count : 1;
+
+  // Dynamic boost: stronger players get higher boost
+  // avgRatio 0.5 → 1.15, avgRatio 1.0 → 1.225, avgRatio 1.5+ → 1.30
+  const boost = 1.15 + Math.max(0, Math.min(1, avgRatio - 0.5)) * 0.15;
+  return Math.min(1.3, Math.max(1.15, boost));
+}
+
+// ===================================================================
+//  SIMULATION ENGINE (HoopIQ mode — geometric mean of positional ratings)
+// ===================================================================
+
+/** Check if a value is a non-null number. */
+function isNum(v) {
+  return typeof v === 'number' && !Number.isNaN(v);
+}
+
+/** Steals/blocks adjustment for rosters with null defensive data. */
+function adjustDefensive(roster) {
+  const scale = (vals) =>
+    vals.reduce((a, b) => a + b, 0) * (vals.length > 0 ? 5 / vals.length : 1);
+  const stls = roster.filter(p => isNum(p.stl) && p.stl > 0).map(p => p.stl);
+  const blks = roster.filter(p => isNum(p.blk) && p.blk > 0).map(p => p.blk);
+  return { stl: scale(stls), blk: scale(blks) };
+}
+
+/**
+ * Individual player rating on a 0–100 scale using positional weighting
+ * against era benchmarks.
+ */
+function playerRating(p) {
+  const bench = SEASON_BENCHMARKS[p.season] || SEASON_BENCHMARKS["2024-25"];
+  const baseKey = p.positions?.[0] || p.pos || "SF";
+  const weights = { ...(POSITION_WEIGHTS[baseKey] || POSITION_WEIGHTS.SF) };
+
+  // Older eras lack steals/blocks — redistribute that weight to categories we have
+  const missing = ['stl', 'blk'].filter(k => !isNum(p[k]));
+  if (missing.length > 0) {
+    const kept = STAT_KEYS.filter(k => !missing.includes(k))
+      .reduce((sum, k) => sum + weights[k], 0);
+    const scale = kept > 0 ? 1 / kept : 1;
+    ['pts','reb','ast'].forEach(k => { weights[k] *= scale; });
+    missing.forEach(k => { weights[k] = 0; });
+  }
+
+  let n = 0;
+  const boost = captainBoost(p);
+  STAT_KEYS.forEach(k => {
+    let v = p[k];
+    if (isNum(v)) {
+      v = v * boost; // Captain attribute boost
+      let ratio = v / bench[k];
+      if (ratio > 1) ratio = Math.pow(ratio, 1.25);
+      n += weights[k] * ratio;
+    }
+  });
+
+  // Weak players (bottom 5 of pool) get a much harsher rating
+  // Weak players (bottom 5 of pool) get a lower base
+  const base = p.weak ? 40 + 20 * n : 60 + 40 * n;
+  const posCount = p.positions?.length || 1;
+  const versatility = (posCount - 1) * 3;
+  const intangibles = INTANGIBLES.has((p.player ?? p.name ?? '').toLowerCase()) ? 2.5 : 0;
+
+  return Math.min(100, Math.round((base + versatility + intangibles) * 10) / 10);
+}
+
+function runSimulation() {
+  showScreen('screen-result');
+
+  // Calculate player ratings using positional HoopIQ method
+  const roster = ['PG','SG','SF','PF','C']
+    .map(pos => game.slots[pos])
+    .filter(Boolean);
+
+  if (roster.length === 0) {
+    document.getElementById('finalRecord').textContent = '0-82';
+    document.getElementById('resultGrade').textContent = 'F';
+    document.getElementById('resultGrade').style.color = '#ef4444';
+    document.getElementById('resultTier').textContent = '摆烂大军';
+    document.getElementById('resultTier').style.color = '#ef4444';
+    return;
+  }
+
+  // Geometric mean of positional player ratings × 1.1
+  const ratings = roster.map(p => playerRating(p));
+  const product = ratings.reduce((a, b) => a * b, 1);
+  const geoMean = Math.pow(product, 1 / ratings.length);
+  const teamOvr = Math.round(geoMean * 1.1 * 10) / 10;
+
+  // Win curve: wins = round(82 · min(rating / 110, 1) ^ 2.2)
+  let wins = Math.round(82 * Math.pow(Math.min(teamOvr / 110, 1), 2.2));
+  let losses = 82 - wins;
+
+  // 特殊规则修正
+  if (wins === 64 && losses === 18) { wins = 65; losses = 17; }
+  else if (wins === 18 && losses === 64) { wins = 17; losses = 65; }
+  if (wins === 54) { wins = 55; losses = 27; }
+  else if (losses === 54) { wins = 27; losses = 55; }
+
+  // 记录当前胜场，供战绩提交使用
+  _recordWins = wins;
+
+  // Display results
+  const record = document.getElementById('finalRecord');
+  record.textContent = `${wins}-${losses}`;
+
+  // Grade & tier based on wins (from TEAM_GRADE_BANDS)
+  const band = TEAM_GRADE_BANDS.find(b => wins >= b.min) || TEAM_GRADE_BANDS[TEAM_GRADE_BANDS.length - 1];
+  const grade = band.grade;
+  const tier = band.label;
+  const tierColor = band.color;
+
+  if (wins >= 80) launchConfetti();
+
+  // Save for poster generation
+  game._posterGrade = grade;
+  game._posterTier = tier;
+  game._posterTierColor = tierColor;
+
+  document.getElementById('resultGrade').textContent = grade;
+  document.getElementById('resultGrade').style.color = tierColor;
+  document.getElementById('resultGrade').style.borderColor = tierColor;
+  document.getElementById('resultGrade').style.boxShadow = `0 0 20px ${tierColor}40`;
+  document.getElementById('resultTier').textContent = tier;
+  document.getElementById('resultTier').style.color = tierColor;
+
+  // Roster final — 2-3 slot layout with team colors
+  const rosterDiv = document.getElementById('rosterFinal');
+  const topRow = ['PG','SG'];
+  const bottomRow = ['SF','C','PF'];
+
+  function renderFinalSlot(pos) {
+    const p = game.slots[pos];
+    if (!p) return '';
+    const colors = TEAM_COLORS[p.team] || ['#333','#555'];
+    const mainColor = colors[0];
+    const color2 = colors[1] || mainColor;
+    const captainCls = game.captain === pos ? ' captain-slot' : '';
+    const style = `background:linear-gradient(135deg, ${mainColor}ee, ${color2}dd);border-color:${mainColor};box-shadow:0 4px 16px ${mainColor}44, inset 0 1px 0 rgba(255,255,255,0.15);`;
+    return `<div class="pos-slot filled${captainCls}" style="${style}">
+      ${game.captain === pos ? '<span class="captain-badge">C</span>' : ''}
+      <span class="slot-player-name">${p.name.split('-').pop()}</span>
+      <span class="slot-team-season">${teamCN(p.team)} · ${p.season}</span>
+    </div>`;
+  }
+
+  let html = '<div class="pos-slots">';
+  html += '<div class="pos-slots-row">';
+  topRow.forEach(pos => { html += renderFinalSlot(pos); });
+  html += '</div>';
+  html += '<div class="pos-slots-row">';
+  bottomRow.forEach(pos => { html += renderFinalSlot(pos); });
+  html += '</div>';
+  html += '</div>';
+  rosterDiv.innerHTML = html;
+}
+
+// ===================================================================
+//  CONFETTI
+// ===================================================================
+function launchConfetti() {
+  const container = document.createElement('div');
+  container.className = 'confetti-container';
+  document.body.appendChild(container);
+
+  const colors = ['#f39c12','#e74c3c','#27ae60','#3498db','#9b59b6','#f1c40f','#e67e22','#1abc9c'];
+  const shapes = ['\u25A0','\u25CF','\u25B2','\u2605'];
+
+  for (let i = 0; i < 150; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.textContent = shapes[Math.floor(Math.random() * shapes.length)];
+    piece.style.left = Math.random() * 100 + '%';
+    piece.style.color = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.fontSize = (Math.random() * 12 + 8) + 'px';
+    piece.style.animationDuration = (Math.random() * 2 + 2) + 's';
+    piece.style.animationDelay = (Math.random() * 2) + 's';
+    container.appendChild(piece);
+  }
+
+  setTimeout(() => container.remove(), 5000);
+}
+
+// ===================================================================
+//  TEST — 自动选取数据最好的5名球员直接模拟
+// ===================================================================
+function testBestPlayers() {
+  // Reset game state
+  game = {
+    round: 0,
+    roster: [],
+    slots: { PG: null, SG: null, SF: null, PF: null, C: null },
+    usedSeasons: [],
+    usedCombos: [],
+    skipTeam: 1,
+    skipYear: 1,
+    currentTeam: null,
+    currentSeason: null,
+    spun: false,
+    skipPending: null,
+  };
+
+  // Collect all players across all seasons & teams
+  const allPlayers = [];
+  for (const [season, teams] of Object.entries(NBA_DATA)) {
+    for (const [team, players] of Object.entries(teams)) {
+      players.forEach(p => {
+        allPlayers.push({
+          name: p.name,
+          pos: p.pos,
+          positions: p.positions,
+          pts: p.stats.pts,
+          reb: p.stats.reb,
+          ast: p.stats.ast,
+          stl: p.stats.stl,
+          blk: p.stats.blk,
+          team,
+          season,
+          total: p.stats.pts + p.stats.reb + p.stats.ast
+        });
+      });
+    }
+  }
+
+  // Sort by combined PTS+REB+AST descending, take top 5
+  allPlayers.sort((a, b) => b.total - a.total);
+  const top5 = allPlayers.slice(0, 5);
+
+  // Assign to position slots
+  const posSlots = ['PG', 'SG', 'SF', 'PF', 'C'];
+  top5.forEach((p, i) => {
+    const pos = posSlots[i];
+    game.slots[pos] = {
+      name: p.name,
+      pos: p.pos,
+      positions: p.positions,
+      assignedPos: pos,
+      team: p.team,
+      season: p.season,
+      pts: p.pts,
+      reb: p.reb,
+      ast: p.ast,
+      stl: p.stl,
+      blk: p.blk
+    };
+    game.roster.push(game.slots[pos]);
+    game.usedSeasons.push(p.season);
+  });
+  game.round = MAX_ROUNDS;
+
+  // Force 82-0 result directly (skip random simulation)
+  showScreen('screen-result');
+
+  // Show roster on result screen — 2-3 slot layout with team colors
+  const rosterDiv = document.getElementById('rosterFinal');
+  const posOrder = ['PG','SG','SF','PF','C'];
+  const topRow = ['PG','SG'];
+  const bottomRow = ['SF','C','PF'];
+
+  function renderFinalSlot(pos) {
+    const p = game.slots[pos];
+    if (!p) return '';
+    const colors = TEAM_COLORS[p.team] || ['#333','#555'];
+    const mainColor = colors[0];
+    const color2 = colors[1] || mainColor;
+    const style = `background:linear-gradient(135deg, ${mainColor}, ${color2});border-color:${mainColor};box-shadow:0 0 12px ${mainColor}66;`;
+    return `<div class="pos-slot filled" style="${style}">
+      <span class="slot-player-name">${p.name.split('-').pop()}</span>
+      <span class="slot-team-season">${teamCN(p.team)} · ${p.season}</span>
+    </div>`;
+  }
+
+  let html = '<div class="pos-slots">';
+  html += '<div class="pos-slots-row">';
+  topRow.forEach(pos => { html += renderFinalSlot(pos); });
+  html += '</div>';
+  html += '<div class="pos-slots-row">';
+  bottomRow.forEach(pos => { html += renderFinalSlot(pos); });
+  html += '</div>';
+  html += '</div>';
+  rosterDiv.innerHTML = html;
+
+  const record = document.getElementById('finalRecord');
+  game._posterGrade = 'S+';
+  game._posterTier = '终极答案';
+  game._posterTierColor = '#f1c40f';
+
+  record.textContent = '82-0';
+  document.getElementById('resultGrade').textContent = 'S+';
+  document.getElementById('resultGrade').style.color = '#f1c40f';
+  document.getElementById('resultTier').textContent = '终极答案';
+  document.getElementById('resultTier').style.color = '#f1c40f';
+  document.getElementById('thresholdNote').style.display = 'none';
+  document.querySelector('.sim-bar-container').style.display = 'none';
+  launchConfetti();
+}
+
+// ===================================================================
+//  SAFE NAVIGATE & POSTER
+// ===================================================================
+function safeNavigate(url, target, eventName) {
+  if (window.ColorboxAI && typeof window.ColorboxAI.navigateTo === 'function') {
+    try { window.ColorboxAI.navigateTo(url, target || '_blank'); return; } catch(e) {}
+  }
+  if (window.ColorboxAI && typeof window.ColorboxAI.openUrl === 'function') {
+    try { window.ColorboxAI.openUrl(url); return; } catch(e) {}
+  }
+  try {
+    if (target === '_self') { window.location.href = url; }
+    else { window.open(url, target || '_blank'); }
+  } catch(e) {
+    window.location.href = url;
+  }
+}
+
+function getPosterPlayers() {
+  const posOrder = ['PG','SG','SF','PF','C'];
+  return posOrder.map(pos => {
+    const p = game.slots[pos];
+    if (!p) return null;
+    return {
+      name: p.name,
+      shortName: p.name.split('-').pop(),
+      team: p.team,
+      season: p.season,
+      salary: p.salary,
+      isCaptain: game.captain === pos,
+      color: POSTER_CARD_COLORS[p.team] || '#333'
+    };
+  }).filter(Boolean);
+}
+
+const POSTER_W = 600, POSTER_H = 800, POSTER_SCALE = 2;
+
+function drawCircularClip(ctx, cx, cy, radius) {
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.closePath();
+  ctx.clip();
+}
+
+function drawRoundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function drawRecordGroup(ctx, cx, topY, w, record, grade, tier, recColor) {
+  // Row 1: Title
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.font = 'bold 18px -apple-system, "PingFang SC", sans-serif';
+  ctx.fillText('我的完美阵容战绩', cx, topY);
+
+  // Row 2: Record — large, centered, black
+  ctx.fillStyle = '#000000';
+  ctx.font = 'bold 72px Oswald, -apple-system, sans-serif';
+  ctx.fillText(record, cx, topY + 33);
+}
+
+function drawPoster(ctx, w, h, players, record, grade, tier) {
+  // === Light gray background ===
+  ctx.fillStyle = '#e0e0e0';
+  ctx.fillRect(0, 0, w, h);
+
+  // === Subtle top accent ===
+  ctx.fillStyle = 'rgba(211,84,0,0.15)';
+  ctx.fillRect(0, 0, w, 3);
+
+  // === Hupu logo (top-left) ===
+  if (window._hupuLogoImg && window._hupuLogoImg.complete && window._hupuLogoImg.naturalWidth > 0) {
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.08)';
+    ctx.shadowBlur = 4;
+    ctx.drawImage(window._hupuLogoImg, 22, 25, 76, 76);
+    ctx.restore();
+  }
+
+  const recColor = record === '82-0' ? '#d35400' : record.split('-')[0] >= 70 ? '#27ae60' : record.split('-')[0] >= 50 ? '#e67e22' : '#e74c3c';
+
+  // === Player cards (calculate first to center record group) ===
+  const cardH = 76, cardGap = 12;
+  const totalH = 5 * cardH + 4 * cardGap;
+  const startY = 240 + (h - 240 - 140 - totalH) / 2;
+
+  // === Record group (title + record + grade+tier) — vertically centered above first card ===
+  const groupH = 105; // title(18) + gap(15) + record(72)
+  const recordGroupTop = (startY - groupH) / 2 + 10;
+  drawRecordGroup(ctx, w / 2, recordGroupTop, w, record, grade, tier, recColor);
+
+  players.forEach((p, i) => {
+    const cy = startY + i * (cardH + cardGap) + cardH / 2;
+    const cardW = w - 64;
+    const cx = w / 2;
+    const x = cx - cardW / 2;
+    const y = cy - cardH / 2;
+
+    // Shadow
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetY = 4;
+
+    // Rounded card — solid color, no gradient
+    drawRoundRect(ctx, x, y, cardW, cardH, 10);
+    ctx.fillStyle = p.color;
+    ctx.fill();
+    ctx.restore();
+
+    // Card border
+    drawRoundRect(ctx, x, y, cardW, cardH, 10);
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Player name — left (full name) + captain mark
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 22px -apple-system, "PingFang SC", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    const displayName = p.isCaptain ? 'C ' + p.name : p.name;
+    ctx.fillText(displayName, x + 22, cy);
+
+    // Team — right, first line
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.font = '15px -apple-system, "PingFang SC", sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(teamCN(p.team), x + cardW - 22, cy - 14);
+
+    // Salary — right, second line
+    ctx.fillStyle = '#f59e0b';
+    ctx.font = 'bold 13px -apple-system, "PingFang SC", sans-serif';
+    ctx.fillText('$' + p.salary + 'M', x + cardW - 22, cy + 1);
+
+    // Season — right, third line
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = '13px -apple-system, "PingFang SC", sans-serif';
+    ctx.fillText(p.season, x + cardW - 22, cy + 16);
+  });
+
+  // === Bottom: branding ===
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.font = '12px -apple-system, "PingFang SC", sans-serif';
+  ctx.fillText('虎扑JRs出品', w / 2, h - 32);
+}
+
+function createPosterCanvasAsync() {
+  const players = getPosterPlayers();
+  // Read actual record from the result screen
+  const recordEl = document.getElementById('finalRecord');
+  const record = recordEl ? recordEl.textContent : '82-0';
+  const canvas = document.getElementById('posterCanvas');
+  canvas.width = POSTER_W * POSTER_SCALE;
+  canvas.height = POSTER_H * POSTER_SCALE;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(POSTER_SCALE, POSTER_SCALE);
+
+  // Load Hupu logo if not already cached
+  const logoLoad = new Promise(resolve => {
+    if (window._hupuLogoImg && window._hupuLogoImg.complete && window._hupuLogoImg.naturalWidth > 0) {
+      resolve();
+    } else {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => { window._hupuLogoImg = img; resolve(); };
+      img.onerror = () => resolve();
+      img.src = 'https://i3.hoopchina.com.cn/newsPost/de00f9a83014c2b3196d831d4be1adb9_w_300_h_300_.png';
+    }
+  });
+
+  return logoLoad.then(() => {
+    const grade = game._posterGrade || '';
+    const tier = game._posterTier || '';
+    drawPoster(ctx, POSTER_W, POSTER_H, players, record, grade, tier);
+    canvas._corsSafe = true;
+    return canvas;
+  });
+}
+
+function generatePoster() {
+  createPosterCanvasAsync().then(canvas => {
+    const dataURL = canvas.toDataURL('image/png');
+    document.getElementById('posterPreviewImg').src = dataURL;
+    document.getElementById('posterOverlay').style.display = 'flex';
+  }).catch(err => {
+    console.error('Poster generation failed:', err);
+  });
+}
+
+function closePoster() {
+  document.getElementById('posterOverlay').style.display = 'none';
+}
+
+function dataURLToBlob(dataURL) {
+  const parts = dataURL.split(',');
+  const mime = parts[0].match(/:(.*?);/)[1];
+  const bytes = atob(parts[1]);
+  const ab = new ArrayBuffer(bytes.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < bytes.length; i++) ia[i] = bytes.charCodeAt(i);
+  return new Blob([ab], { type: mime });
+}
+
+function sharePoster(btn) {
+  // Check if in Hupu App environment
+  if (!getIsInApp()) {
+    showAppIntercept();
+    return;
+  }
+  const canvas = document.getElementById('posterCanvas');
+  if (!canvas.width) return;
+  const dataURL = canvas.toDataURL('image/png');
+  const blob = dataURLToBlob(dataURL);
+  if (blob.size === 0) return;
+
+  const origText = btn.innerHTML;
+  btn.innerHTML = '⏳ 上传中...';
+  btn.disabled = true;
+
+  const filename = 'poster_82_0_' + Date.now() + '.png';
+
+  // Upload via colorbox bridge
+  function doUpload() {
+    return new Promise((resolve, reject) => {
+      if (window.parent && window.parent !== window) {
+        const callbackId = '_cb_up_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+        const timer = setTimeout(() => { cleanup(); reject(new Error('Upload timeout')); }, 30000);
+        const handler = e => {
+          const d = e.data;
+          if (d && d.protocol === 'colorbox-ai-bridge' && d.type === 'oss.upload.callback' && d.payload && d.payload.callbackId === callbackId) {
+            clearTimeout(timer); cleanup();
+            d.payload.error ? reject(new Error(d.payload.error)) : resolve(d.payload.downloadUrl || '');
+          }
+        };
+        const cleanup = () => window.removeEventListener('message', handler);
+        window.addEventListener('message', handler);
+        window.parent.postMessage({
+          protocol: 'colorbox-ai-bridge', version: 1, direction: 'frame-to-host',
+          type: 'oss.upload',
+          payload: { file: blob, filename, callbackId }
+        }, '*');
+      } else {
+        reject(new Error('No upload capability'));
+      }
+    });
+  }
+
+  doUpload().then(imageUrl => {
+    const initialValue = {
+      syncPost: true,
+      appJsonV3: {
+        activeTab: 'thread',
+        data: { title: '', imageList: imageUrl ? [imageUrl] : [], content: '' }
+      }
+    };
+    const postUrl = 'huputiyu://bbs/postImg?tagName=' + encodeURIComponent('82-0完美赛季') +
+      '&tagId=148405' +
+      '&topicName=' + encodeURIComponent('湿乎乎的话题') +
+      '&topicId=177' +
+      '&initialValue=' + encodeURIComponent(JSON.stringify(initialValue));
+    safeNavigate(postUrl, '_self', 'poster_share');
+    closePoster();
+  }).catch(e => {
+    console.warn('Poster upload failed', e);
+  }).finally(() => {
+    btn.innerHTML = origText;
+    btn.disabled = false;
+  });
+}
+
+// ===================================================================
+//  战绩排行系统
+// ===================================================================
+const RECORD_BIZ_TYPE = "common_basketball_second";
+
+// 胜场 → 评分项ID映射（无64胜）
+const RECORD_ITEM_IDS = {
+  82:"55592",81:"55667",80:"55666",79:"55591",78:"55590",
+  77:"55665",76:"55664",75:"55589",74:"55663",73:"55588",
+  72:"55587",71:"55586",70:"55662",69:"55585",68:"55584",
+  67:"55661",66:"55660",65:"55659",63:"55583",62:"55658",
+  61:"55657",60:"55582",59:"55581",58:"55580",57:"55656",
+  56:"55579",55:"55655",54:"55654",53:"55653",52:"55578",
+  51:"55577",50:"55652",49:"55576",48:"55651",47:"55575",
+  46:"55574",45:"55573",44:"55650",43:"55572",42:"55649",
+  41:"55648",40:"55571",39:"55570",38:"55647",37:"55646",
+  36:"55569",35:"55645",34:"55568",33:"55644",32:"55643",
+  31:"55642",30:"55567",29:"55566",28:"55565",27:"55641",
+  26:"55640",25:"55564",24:"55639",23:"55638",22:"55563",
+  21:"55637",20:"55562",19:"55561",18:"55636",17:"55635",
+  16:"55634",15:"55560",14:"55633",13:"55559",12:"55632",
+  11:"55558",10:"55631",9:"55557",8:"55630",7:"55629",
+  6:"55628",5:"55556",4:"55555",3:"55554",2:"55627",
+  1:"55626",0:"55625"
+};
+
+var _recordWins = -1; // 当前局胜场，showResult时设置
+
+function getLastRecordKey() { return "nba_82_0_last_win"; }
+
+function getLastSubmittedWin() {
+  try {
+    var v = localStorage.getItem(getLastRecordKey());
+    return v != null ? Number(v) : -1;
+  } catch(e) { return -1; }
+}
+
+function setLastSubmittedWin(w) {
+  try { localStorage.setItem(getLastRecordKey(), String(w)); } catch(e) {}
+}
+
+// 纯提交函数：不操作任何UI元素，只做API调用
+async function submitRecordOnly() {
+  var wins = _recordWins;
+  if (wins < 0 || wins > 82) return { ok: false, msg: "无法获取战绩" };
+  if (!window.ColorboxAI || !window.ColorboxAI.score || !window.ColorboxAI.score.addScore) {
+    return { ok: false, msg: "评分SDK未就绪，请在虎扑App内操作" };
+  }
+
+  try {
+    var prevWins = getLastSubmittedWin();
+
+    // 尝试冲正旧投票
+    if (prevWins >= 0 && prevWins !== wins) {
+      var prevId = RECORD_ITEM_IDS[prevWins];
+      if (prevId) {
+        await ColorboxAI.score.addScore({
+          outBizType: RECORD_BIZ_TYPE,
+          outBizNo: prevId,
+          score: 0
+        });
+      }
+    }
+
+    var curId = RECORD_ITEM_IDS[wins];
+    if (!curId) return { ok: false, msg: "无效战绩：" + wins + "胜" };
+
+    await ColorboxAI.score.addScore({
+      outBizType: RECORD_BIZ_TYPE,
+      outBizNo: curId,
+      score: 10
+    });
+
+    setLastSubmittedWin(wins);
+    return { ok: true };
+  } catch (err) {
+    console.error("提交战绩失败", err);
+    return { ok: false, msg: "提交失败，请重试" };
+  }
+}
+
+function closeRankingModal() {
+  document.getElementById('rankingModal').style.display = 'none';
+}
+
+function showRankingModal() {
+  document.getElementById('rankingModal').style.display = 'flex';
+}
+
+async function fetchRankingData(myWins) {
+  var winsList = Object.keys(RECORD_ITEM_IDS).map(Number);
+  var results = await Promise.all(winsList.map(async function(win) {
+    var id = RECORD_ITEM_IDS[win];
+    try {
+      var res = await ColorboxAI.score.getScore({
+        outBizType: RECORD_BIZ_TYPE,
+        outBizNo: id
+      });
+      var count = (res && res.data && res.data.detail)
+        ? Number(res.data.detail.scorePersonCount || 0) : 0;
+      return { wins: win, count: count };
+    } catch(e) {
+      return { wins: win, count: 0 };
+    }
+  }));
+  results.sort(function(a, b) { return b.wins - a.wins; });
+  return results;
+}
+
+function renderRankingModal(myWins, results) {
+  // 总分档：82胜独一档，80-81胜独一档，每10胜一档
+  var buckets = [
+    { label: "82胜", min: 82, max: 82 },
+    { label: "80-81胜", min: 80, max: 81 },
+    { label: "70-79胜", min: 70, max: 79 },
+    { label: "60-69胜", min: 60, max: 69 },
+    { label: "50-59胜", min: 50, max: 59 },
+    { label: "40-49胜", min: 40, max: 49 },
+    { label: "30-39胜", min: 30, max: 39 },
+    { label: "20-29胜", min: 20, max: 29 },
+    { label: "10-19胜", min: 10, max: 19 },
+    { label: "1-9胜", min: 1, max: 9 },
+    { label: "0胜", min: 0, max: 0 }
+  ];
+
+  // 统计每个档位的人数
+  var bucketData = buckets.map(function(b) {
+    var count = 0;
+    for (var i = 0; i < results.length; i++) {
+      if (results[i].wins >= b.min && results[i].wins <= b.max) {
+        count += results[i].count;
+      }
+    }
+    return { label: b.label, count: count, min: b.min, max: b.max };
+  });
+
+  // 计算排名（直接用原始数据精确累加，不用分档）
+  var totalPlayers = 0;
+  var higherThanMe = 0;
+  var myBucketLabel = "";
+  for (var i = 0; i < results.length; i++) {
+    totalPlayers += results[i].count;
+    if (results[i].wins > myWins) higherThanMe += results[i].count;
+  }
+  for (var i = 0; i < bucketData.length; i++) {
+    if (myWins >= bucketData[i].min && myWins <= bucketData[i].max) {
+      myBucketLabel = bucketData[i].label;
+      break;
+    }
+  }
+  var rank = higherThanMe + 1;
+  var pct = totalPlayers > 0 ? Math.round((totalPlayers - higherThanMe) / totalPlayers * 100) : 0;
+
+  var maxCount = 1;
+  for (var i = 0; i < bucketData.length; i++) {
+    if (bucketData[i].count > maxCount) maxCount = bucketData[i].count;
+  }
+
+  // 渲染
+  var html = '<div style="text-align:center;padding:5px 0;">';
+  html += '<div style="font-size:0.9rem;color:var(--text-muted);">你的排名</div>';
+  html += '<div style="font-size:3.2rem;font-weight:900;color:var(--gold);line-height:1.1;">#' + rank + '</div>';
+  html += '<div style="margin:10px 0 16px;padding:10px 16px;border-radius:12px;background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.25);">';
+  html += '  <span style="font-size:1.1rem;font-weight:700;color:var(--gold);">超过了 ' + pct + '% 的玩家</span>';
+  html += '</div>';
+
+  // 分档分布
+  html += '<div style="text-align:left;">';
+  for (var i = 0; i < bucketData.length; i++) {
+    var b = bucketData[i];
+    var isMe = myWins >= b.min && myWins <= b.max;
+    var barPct = b.count > 0 ? Math.round(b.count / maxCount * 100) : 0;
+    html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:6px 10px;border-radius:8px;' + (isMe ? 'background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,0.3);' : '') + '">';
+    html += '  <span style="width:68px;font-size:0.8rem;font-weight:' + (isMe ? '900' : '600') + ';color:' + (isMe ? 'var(--gold)' : 'var(--text-muted)') + ';flex-shrink:0;">' + b.label + '</span>';
+    html += '  <div style="flex:1;height:16px;border-radius:8px;background:rgba(255,255,255,0.06);overflow:hidden;">';
+    html += '    <div style="height:100%;width:' + barPct + '%;border-radius:8px;background:' + (isMe ? 'linear-gradient(90deg,var(--gold),var(--gold-light))' : 'rgba(232,93,58,0.35)') + ';"></div>';
+    html += '  </div>';
+    html += '  <span style="width:46px;font-size:0.75rem;color:var(--text-muted);text-align:right;flex-shrink:0;">' + b.count + '人</span>';
+    html += '</div>';
+  }
+  html += '</div>';
+
+  html += '<div style="margin-top:12px;font-size:0.8rem;color:var(--text-muted);text-align:center;">参与人数 ' + totalPlayers + ' 人 · 你的战绩 ' + myWins + ' 胜</div>';
+  html += '</div>';
+
+  document.getElementById('rankingModalContent').innerHTML = html;
+  showRankingModal();
+}
+
+// 海报弹窗的「查看排行」入口
+async function viewRankingFromPoster() {
+  closePoster();
+
+  var modalContent = document.getElementById('rankingModalContent');
+  modalContent.innerHTML = "<div class='ranking-loading'>📊 加载排行中...</div>";
+  showRankingModal();
+
+  var lastWin = getLastSubmittedWin();
+
+  // 如果未提交过或战绩变了，先提交
+  if (lastWin < 0 || lastWin !== _recordWins) {
+    var result = await submitRecordOnly();
+    if (!result.ok) {
+      modalContent.innerHTML = "<div class='ranking-loading'>❌ " + (result.msg || "提交失败") + "</div>";
+      return;
+    }
+  }
+
+  // 加载排行数据并渲染
+  var data = await fetchRankingData(_recordWins);
+  renderRankingModal(_recordWins, data);
+}
+
+// ===================================================================
+//  INIT
+// ===================================================================
+initParticles();
+</script>
+</body>
+</html>
