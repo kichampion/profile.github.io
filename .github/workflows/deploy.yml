@@ -1,0 +1,50 @@
+name: 🚀 Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Production Server
+    runs-on: ubuntu-latest
+
+    steps:
+      # ─── 第 1 步：检出代码 ───
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      # ─── 第 2 步：清理不需要部署的文件 ───
+      - name: 🧹 Clean Up Unnecessary Files
+        run: |
+          rm -rf .git
+          rm -rf .github
+          rm -rf .idea
+          rm -rf temp
+          rm -rf .claude
+          rm -f .gitignore
+          rm -f README.md
+          rm -f "Genimex Group.pdf"
+          rm -f CICD-DEPLOY-GUIDE.md
+          echo "✅ Cleanup done. Files to deploy:"
+          ls -la
+
+      # ─── 第 3 步：通过 rsync 同步到服务器 ───
+      - name: 🚀 Deploy via rsync
+        uses: burnett01/rsync-deployments@7.0.1
+        with:
+          switches: -avzr --delete
+          path: ./
+          remote_path: /var/www/skyshow/
+          remote_host: ${{ secrets.SSH_HOST }}
+          remote_user: ${{ secrets.SSH_USER }}
+          remote_port: ${{ secrets.SSH_PORT }}
+          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      # ─── 第 4 步：部署后校验 ───
+      - name: ✅ Verify Deployment
+        run: |
+          echo "🎉 Deployment completed!"
+          echo "📋 Visit your site at: http://${{ secrets.SSH_HOST }}"

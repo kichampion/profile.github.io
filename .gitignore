@@ -1,0 +1,15 @@
+# IDE
+.idea/
+
+# Claude AI
+.claude/
+
+# 临时文件
+temp/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 不需要部署的 PDF
+*.pdf
